@@ -109,6 +109,10 @@ metaMachine.observer.subscribe({
         metaStore = {...metaStore, metas: []}
         break
       case LoadingState.Updating:
+        if (!state.event) {
+          console.warn(state)
+          return
+        }
         const payload = state.event.payload
         if (payload === undefined || payload.metas === undefined) {
           metaMachine.service.send(LoadingEvent.Failure)
@@ -134,7 +138,7 @@ metaMachine.observer.subscribe({
 
 networkMetaMachine.observer.subscribe({
   next: (state) => {
-    if (state.event.type == LoadingEvent.Success) {
+    if (state.value == LoadingEvent.Success) {
       let metas = parseMetas(networkMetaStore.data)
       metaMachine.service.send({type: LoadingEvent.Update, payload: {metas: metas}})
     }
@@ -167,6 +171,10 @@ metaClientMachine.observer.subscribe({
         metaStore = {...metaStore, client: nothing()}
         break
       case LoadingState.Updating:
+        if (!state.event) {
+          console.warn(state)
+          return
+        }
         let client = state.event.payload.client
 
         if (client === undefined) {
@@ -207,6 +215,10 @@ metaNextClientMachine.observer.subscribe({
         metaStore = {...metaStore, nextClient: nothing()}
         break
       case LoadingState.Updating:
+        if (!state.event) {
+          console.warn(state)
+          return
+        }
         let payload = state.event.payload
         if (payload !== undefined && payload.length > 0) {
           metaStore = {...metaStore, nextClient: just(payload)}
@@ -334,7 +346,7 @@ metaNextClientMachine.observer.subscribe({
 
 // metaClientMachine.observer.subscribe(
 //   (state) => {
-//     if (state.event.type === LoadingEvent.Success) {
+//     if (state.value === LoadingEvent.Success) {
 //       metaNoteLoadMachine.reset()
 //       metaNoteLoadMachine.service.send({type: LoadingEvent.Load, payload: {client: metaStore.client}})
 //     }

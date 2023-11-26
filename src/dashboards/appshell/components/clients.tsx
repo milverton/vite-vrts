@@ -58,6 +58,7 @@ export const Clients = ({className}: { className: string }) => {
 
   const getDealerAndClient = (dealer:string, client:string) => {
     // @ts-ignore
+
     return clientTree[dealer][client]
   }
 
@@ -97,7 +98,7 @@ export const Clients = ({className}: { className: string }) => {
                           className={classNames("ml-4 text-gray-600 cursor-pointer hover:underline")}>
                           {block}
                         </summary>
-                        {Object.keys(getDealerAndClientAndBlock(localSelectedDealer,client,block).sort().map((season:string) => {
+                        {Object.keys(getDealerAndClientAndBlock(localSelectedDealer,client,block)).sort().map((season:string) => {
                           // const isActive = selectedClient.isJust && selectedClient.value.client() === client && selectedClient.value.block() === block && localSelectedField === field
                           // const dbGroup = clientTree[localSelectedDealer][client][block][field]
                           // const boundary = dbGroup.getAllFieldsBoundary()
@@ -143,7 +144,7 @@ export const Clients = ({className}: { className: string }) => {
                             // </div>
                           )
 
-                        }))
+                        })
                         }
                       </details>
                     )

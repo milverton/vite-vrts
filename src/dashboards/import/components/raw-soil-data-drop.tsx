@@ -28,11 +28,11 @@ export const RawSoilDataDrop = (props:DropFileProps) => {
   useEffect(() => {
     const sub = networkSoilRawUploadMachine.observer.subscribe({
       next: (x) => {
-        if (x.event.type === LoadingEvent.Success) {
+        if (x.value === LoadingEvent.Success) {
           setLoading(false)
           setFile([])
         }
-        if (x.event.type === LoadingEvent.Failure) {
+        if (x.value === LoadingEvent.Failure) {
           setLoading(false)
         }
       }

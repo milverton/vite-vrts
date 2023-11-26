@@ -188,7 +188,7 @@ statsDataMachine.observer.subscribe({
 // listen for soil, fusion and stats ui updates
 merge(soilMachine.observer, fusionMachine.observer, statsUIForXYDataMachine.observer).subscribe({
   next: (state) => {
-    if (state.event.type === LoadingEvent.Success) {
+    if (state.value === LoadingEvent.Success) {
       // xData (fusion data) combines both EM and GR sensor data that is closest to where the soil sample was taken
       const xData = fusionStore.fusionData.csv
 
@@ -317,7 +317,7 @@ statsRegressionMachine.observer.subscribe({
  */
 merge(statsUIForRegressionsMachine.observer, statsDataMachine.observer, statsRegressionOutliersMachine.observer).subscribe({
   next: (state) => {
-    if (state.event.type === LoadingEvent.Success) {
+    if (state.value === LoadingEvent.Success) {
       // get the regression name
       const selectedRegressionName = StatsRegressionTypesMenu[statsStore.uiRegressionState.selectedRegression].menuName.toLowerCase()
 
@@ -544,7 +544,7 @@ statsReportUpdatingMachine.observer.subscribe({
 
 statsReportUpdatingMachine.observer.subscribe({
   next: (state) => {
-    if (state.event.type === LoadingEvent.Success) {
+    if (state.value === LoadingEvent.Success) {
       const reportState = statsStore.reportState
       console.log("RESETTING STATS MACHINE A")
       statsReportLoadingMachine.reset()
@@ -591,7 +591,7 @@ statsReportUpdatingMachine.observer.subscribe({
 //
 //   next: (state) => {
 //
-//     if (state.event.type === LoadingEvent.Success) {
+//     if (state.value === LoadingEvent.Success) {
 //       loadStatsReportFromDisk()
 //     }
 //   }
@@ -620,7 +620,7 @@ const buildReportItemsForSlides = (reportItems: {[k:string]: ReportItem[]}):Slid
  */
 // merge(statsRegressionOutliersMachine.observer).subscribe({
 //   next: (state) => {
-//     if (state.event.type === LoadingEvent.Success) {
+//     if (state.value === LoadingEvent.Success) {
 //       const items = statsStore.reportState.reportItems[statsStore.uiXYState.selectedHorizon] as ReportItem[]
 //       const newItems = [] as ReportItem[]
 //       for (let i = 0; i < items.length; i++) {
@@ -648,7 +648,7 @@ const buildReportItemsForSlides = (reportItems: {[k:string]: ReportItem[]}):Slid
 merge(statsRegressionMachine.observer).subscribe({
   next: (state) => {
 
-    if (state.event.type === LoadingEvent.Success) {
+    if (state.value === LoadingEvent.Success) {
 
       const changeList = []
       // get report items which will be in their default state initially

@@ -192,30 +192,31 @@ const HomeMap = () => {
 
   console.log(meta);
   return (
+
       <div className="w-full flex-col h-full flex items-center justify-start">
-        <div className="min-h-[4rem]"></div>
-        <div className="flex flex-row w-full bg-gray-50 p-4">
-          <div className="flex w-1/6 flex-col space-y-4">
-            <h1 className="text-xl text-secondary text-center">{client.isJust ? client.value.client() : "No Client Selected"}</h1>
-            <ToggleButton label='Points' selected={soilUIStore.toolbarState.showPoints} setSelected={setShowPoints}/>
-            <ToggleButton label='Boundaries' selected={soilUIStore.toolbarState.showBoundaries} setSelected={setShowBoundaries}/>
-            {/*<hr/>*/}
-            <div className='bg-gray-100'>
-              <div className='flex justify-between flex-col'>
-                <RadioStyleSelector name="map-type" value={mapVariant.toString()} title="Default" setSelected={() => setMapVariant(MapVariant.Default)} selected={mapVariant === MapVariant.Default}/>
-                <RadioStyleSelector name="map-type" value={mapVariant.toString()} title="Gradient" setSelected={() => setMapVariant(MapVariant.Gradient)} selected={mapVariant === MapVariant.Gradient}/>
-                <RadioStyleSelector name="map-type" value={mapVariant.toString()} title="Black and White" setSelected={() => setMapVariant(MapVariant.BlackAndWhite)} selected={mapVariant === MapVariant.BlackAndWhite}/>
-              </div>
-              <StringSelectorControl menu={mapMenu} selected={map} setSelected={(e) => {
-                setMap(e)
-              }}/>
+      <div className="min-h-[4rem]"></div>
+      <div className="flex flex-row w-full bg-gray-50 p-4">
+        <div className="flex w-1/6 flex-col space-y-4">
+          <h1 className="text-xl text-secondary text-center">{client.isJust ? client.value.client() : "No Client Selected"}</h1>
+          <ToggleButton label='Points' selected={soilUIStore.toolbarState.showPoints} setSelected={setShowPoints}/>
+          <ToggleButton label='Boundaries' selected={soilUIStore.toolbarState.showBoundaries} setSelected={setShowBoundaries}/>
+
+          <div className='bg-gray-100'>
+            <div className='flex justify-between flex-col'>
+              <RadioStyleSelector name="map-type" value={mapVariant.toString()} title="Default" setSelected={() => setMapVariant(MapVariant.Default)} selected={mapVariant === MapVariant.Default}/>
+              <RadioStyleSelector name="map-type" value={mapVariant.toString()} title="Gradient" setSelected={() => setMapVariant(MapVariant.Gradient)} selected={mapVariant === MapVariant.Gradient}/>
+              <RadioStyleSelector name="map-type" value={mapVariant.toString()} title="Black and White" setSelected={() => setMapVariant(MapVariant.BlackAndWhite)} selected={mapVariant === MapVariant.BlackAndWhite}/>
             </div>
-            {/*<hr/>*/}
-            {/*<StringSelectorControl label="Map Size" menu={MapSize} selected={mapSize} setSelected={(e) => setMapSize(e.menuType)} />*/}
+            <StringSelectorControl menu={mapMenu} selected={map} setSelected={(e) => {
+              setMap(e)
+            }}/>
           </div>
-          {/*<div>*/}
-          {/*  <h1 className="text-sm text-gray-500 mt-4">{schema?.description} ({schema?.unit_abbreviation})</h1>*/}
-          {/*</div>*/}
+          {/*<hr/>*/}
+          {/*<StringSelectorControl label="Map Size" menu={MapSize} selected={mapSize} setSelected={(e) => setMapSize(e.menuType)} />*/}
+          </div>
+        {/*<div>*/}
+        {/*  <h1 className="text-sm text-gray-500 mt-4">{schema?.description} ({schema?.unit_abbreviation})</h1>*/}
+        {/*</div>*/}
           <HorizontalBarChart data={histogram} colors={palettes} width={width} />
 
           {meta?
@@ -284,15 +285,11 @@ const HomeMap = () => {
             />
             {/*<HomeBarChart bins={barChartProps.bins} palettes={barChartProps.palettes} selectedPalette={barChartProps.selectedPalette}/>*/}
 
-
         </div>
-
-
-
-
       </div>
   )
 }
+
 
 
 
@@ -305,6 +302,7 @@ const Home = () => {
   return (
     <div className="flex items-center justify-center h-full w-full">
       <HomeMap />
+
     </div>
   )
 }

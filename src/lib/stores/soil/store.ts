@@ -73,7 +73,7 @@ soilMachine.observer.subscribe(
 
 networkSoilPointsMachine.observer.subscribe({
   next: (state) => {
-    switch(state.event.type) {
+    switch(state.value) {
       case LoadingEvent.Success:
         // @ts-ignore
         soilStore.data.soilPoints = {type: CsvType.SoilPoints, csv: networkSoilPointsStore.data.csv}
@@ -87,7 +87,7 @@ networkSoilPointsMachine.observer.subscribe({
 
 networkSoilSamplesMachine.observer.subscribe({
   next: (state) => {
-    switch(state.event.type) {
+    switch(state.value) {
       case LoadingEvent.Success:
         // @ts-ignore
         soilStore.data.soilDataMetas = networkSoilSamplesStore.data.metas;
@@ -102,7 +102,7 @@ networkSoilSamplesMachine.observer.subscribe({
 
 networkSoilPointsUploadMachine.observer.subscribe({
   next: (state) => {
-    switch(state.event.type) {
+    switch(state.value) {
       case LoadingEvent.Success:
         networkSoilPointsMachine.reset()
         // @ts-ignore
@@ -114,7 +114,7 @@ networkSoilPointsUploadMachine.observer.subscribe({
 
 networkSoilSamplesUploadMachine.observer.subscribe({
 next: (state) => {
-    switch(state.event.type) {
+    switch(state.value) {
       case LoadingEvent.Success:
         networkSoilSamplesMachine.reset()
         // @ts-ignore
@@ -131,7 +131,7 @@ next: (state) => {
 
 // networkSoilFusionMachine.observer.subscribe({
 //   next: (state) => {
-//     switch(state.event.type) {
+//     switch(state.value) {
 //       case LoadingEvent.Success:
 //         soilStore.data.soilFusion = {type: CsvType.SoilFusion, csv: networkSoilFusionStore.data.csvs}
 //         break;
@@ -141,7 +141,7 @@ next: (state) => {
 
 // merge(networkSoilPointsMachine.observer, networkSoilSamplesMachine.observer).subscribe({
 //   next: (state) => {
-//     if (state.event.type === LoadingEvent.Success) {
+//     if (state.value === LoadingEvent.Success) {
 //       if (soilStore.data.soilPoints.csv.body.length > 0 && Object.keys(soilStore.data.soilHorizonData).length > 0) {
 //         console.log('Soil points and soil horizons loaded, sending load to soilMachine')
 //         soilMachine.service.send(LoadingEvent.Update)
@@ -183,7 +183,7 @@ soilPhotosMachine.observer.subscribe({
 
 networkSoilPhotoUploadMachine.observer.subscribe({
   next: (state) => {
-    switch(state.event.type) {
+    switch(state.value) {
       case LoadingEvent.Success:
         soilPhotosMachine.reset()
         soilPhotosMachine.service.send(LoadingEvent.Load)

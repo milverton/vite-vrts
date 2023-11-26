@@ -59,7 +59,7 @@ boundaryMachine.observer.subscribe({
 
 metaClientMachine.observer.subscribe({
   next: (state) => {
-    if (state.event.type === LoadingEvent.Success) {
+    if (state.value === LoadingEvent.Success) {
       if (metaStore.client.isJust) {
         if (boundaryMachine.service.getSnapshot().value === LoadingState.Loaded) {
           boundaryMachine.service.send(LoadingEvent.Reset)
@@ -76,7 +76,7 @@ metaClientMachine.observer.subscribe({
 
 networkBoundaryAllFieldsMachine.service.subscribe({
   next: (state: { event: { type: string; }; }) => {
-    if (state.event.type == LoadingEvent.Success) {
+    if (state.value == LoadingEvent.Success) {
       // @ts-ignore
       boundaryMachine.service.send({type: LoadingEvent.Load, payload: {...networkBoundaryAllFieldsStore.data}})
     }

@@ -1,7 +1,6 @@
-import {assign, createMachine, interpret} from "xstate";
-import {from, merge, Observable} from "rxjs";
+import {createActor, createMachine} from "xstate";
+import {from, merge, Observable, Subject} from "rxjs";
 import {useEffect, useState} from "react";
-import {logFailure} from "../lib/stores/logging";
 import {startAction} from "./utils.ts";
 
 const Empty = 'Empty'
@@ -36,24 +35,32 @@ export const LoadingEvent = {
   Flush: Flush,
 }
 
-const handleQueue = assign((context:any, event:any) => {
-  context.queue = {...context.queue, ...event.payload}
-  return context
-})
+type LoadingState = typeof LoadingState[keyof typeof LoadingState]
+type LoadingEvent = typeof LoadingEvent[keyof typeof LoadingEvent]
+class StateMachine {
+  private state: LoadingState = Empty
+  public observable: Observable<any> = new Subject()
+  private _name: string;
 
-const handleQueueFlush = assign((context:any, event:any) => {
-  try {
-    return event.payload(context)
-  } catch (e:any) {
-    logFailure('handleQueueFlush', e.message)
-    return context
+  constructor(name: string) {
+    this._name = name;
   }
-})
+
+  send(event: LoadingEvent, payload?: any) {
+    if (this.state === Empty || this.state === Waiting) {
+      // @ts-ignore
+      this.observable.next({type: event, payload, meta: {name: this._name}})
+    }
+
+  }
+
+}
+
+
 
 export const createLoadingMachine = (name: string) => {
   return createMachine(
     {
-      predictableActionArguments: true,
       id: name,
       initial: Empty,
       context: {
@@ -145,7 +152,7 @@ export const createLoadingMachine = (name: string) => {
     },
     {
       actions: {
-        log: (context, event) => {
+        log: ({context, event}) => {
           const storeStopEvent = () => {
             // @ts-ignore
             if (context.notifiers[name] === undefined) {
@@ -194,8 +201,8 @@ export const createLoadingMachine = (name: string) => {
         // handleLoad: (_, __) => {
         //   // console.log('[XSTATE] Boundary Machine - handleLoad', context, event);
         // },
-        handleQueue,
-        handleQueueFlush,
+        // handleQueue,
+        // handleQueueFlush,
 
       },
     }
@@ -209,7 +216,7 @@ export class LoadingMachine  {
 
   constructor(name: string) {
     this._machine = createLoadingMachine(name)
-    this._service = interpret(this._machine).start()
+    this._service = createActor(this._machine).start()
     this._observer = from(this._service)
     this.reset = this.reset.bind(this)
   }
@@ -244,13 +251,13 @@ export const useLoadMachinesState = (machines:LoadingMachine[]) => {
     }
     const sub = merge(...machines.filter(x => x?.observer).map(x => x.observer)).subscribe(
       (state:any) => {
-        if (state.value === LoadingState.Loaded && state.event.type === LoadingEvent.Success) {
+        if (state.value === LoadingState.Loaded && state.value === LoadingEvent.Success) {
           setTs(Date.now())
         }
         if (state.value === LoadingState.Empty) {
           setTs(Date.now())
         }
-        if (state.value === LoadingState.Waiting && state.event.type === LoadingEvent.Success) {
+        if (state.value === LoadingState.Waiting && state.value === LoadingEvent.Success) {
           setTs(Date.now())
         }
       }

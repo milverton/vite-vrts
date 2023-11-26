@@ -55,7 +55,7 @@
     "typescript": "^5.2.2",
     "utm-latlng": "^1.0.7",
     "vite": "^5.0.0",
-    "xstate": "^4.38.3",
+    "xstate": "^5.0.0-beta.47",
     "xxhashjs": "^0.2.2"
   }
 }

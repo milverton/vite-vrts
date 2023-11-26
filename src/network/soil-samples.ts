@@ -75,7 +75,7 @@ networkSoilSamplesMachine.observer.subscribe({
         break;
     }
 
-    // switch (state.event.type) {
+    // switch (state.value) {
     //
     //   case LoadingEvent.Failure:
     //     logFailure('Network Meta Machine', "Could not load metadata");

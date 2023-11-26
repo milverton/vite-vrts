@@ -61,11 +61,11 @@ export const EMGRDrop = (props:DropFileProps) => {
   useEffect(() => {
     const sub = networkEmGrUploadMachine.observer.subscribe({
       next: (x) => {
-        if (x.event.type === LoadingEvent.Success) {
+        if (x.value === LoadingEvent.Success) {
           setLoading(false)
           setFile([])
         }
-        if (x.event.type === LoadingEvent.Failure) {
+        if (x.value === LoadingEvent.Failure) {
           setLoading(false)
         }
       }

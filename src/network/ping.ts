@@ -44,7 +44,7 @@ networkPingMachine.observer.subscribe({
         break;
     }
 
-    switch (state.event.type) {
+    switch (state.value) {
 
       case LoadingEvent.Failure:
         logFailure('Ping Machine', "Could not ping the server");

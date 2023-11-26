@@ -66,7 +66,7 @@ networkSoilFusionMachine.observer.subscribe({
 
 networkSoilFusionMachine.observer.subscribe({
   next: (state) => {
-    switch(state.event.type) {
+    switch(state.value) {
       case LoadingEvent.Success:
         soilStore.data.soilFusion = {type: CsvType.SoilFusion, csv: networkSoilFusionStore.data.csv}
         fusionMachine.reset()

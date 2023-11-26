@@ -27,11 +27,11 @@ export const BoundaryDrop = (props: DropFileProps) => {
   useEffect(() => {
     const sub = networkBoundaryUploadMachine.observer.subscribe({
       next: (x) => {
-        if (x.event.type === LoadingEvent.Success) {
+        if (x.value === LoadingEvent.Success) {
           setLoading(false)
           setFile([])
         }
-        if (x.event.type === LoadingEvent.Failure) {
+        if (x.value === LoadingEvent.Failure) {
           setLoading(false)
         }
       }

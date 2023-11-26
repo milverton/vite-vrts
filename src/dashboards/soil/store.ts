@@ -20,11 +20,16 @@ export const soilUIToolbarMachine = new LoadingMachine('Soil UI Machine')
 
 soilUIToolbarMachine.observer.subscribe({
   next: (state) => {
+
     switch (state.value) {
       case LoadingState.Empty:
         soilUIStore = {...soilUIStore, toolbarState: resetSoilUIToolbar()}
         break
       case LoadingState.Updating:
+        if (!state.event) {
+          console.warn(state)
+          return
+        }
         const payload = state.event.payload
         soilUIStore = {...soilUIStore, toolbarState: {...soilUIStore.toolbarState, ...payload}}
         soilUIToolbarMachine.service.send({type: LoadingEvent.Success})
@@ -62,7 +67,8 @@ soilUIDataMachine.observer.subscribe({
  */
 merge(soilMachine.observer, soilUIToolbarMachine.observer).subscribe({
   next: (state) => {
-    if (state.event.type === LoadingEvent.Success) {
+
+    if (state.value === LoadingEvent.Success) {
 
       // extract coordinates from the selected horizon and format then into L.LatLngExpression for leaflet
       // const samplesByHorizon = Object.values(soilStore.data.soilHorizonData)
@@ -92,7 +98,7 @@ merge(soilMachine.observer, soilUIToolbarMachine.observer).subscribe({
 
 // merge(soilMachine.observer).subscribe({
 //   next: (state) => {
-//     if (state.event.type === LoadingEvent.Success) {
+//     if (state.value === LoadingEvent.Success) {
 //       const setHorizonMenu = soilStore.data.soilDataMetas.length > 0 && soilUIStore.toolbarState.selectedHorizon === 0
 //
 //       if (setHorizonMenu) {
@@ -109,7 +115,7 @@ merge(soilMachine.observer, soilUIToolbarMachine.observer).subscribe({
  */
 merge(soilMapsMachine.observer).subscribe({
   next: (state) => {
-    if (state.event.type === LoadingEvent.Success) {
+    if (state.value === LoadingEvent.Success) {
       let menu = Object.keys(soilStore.maps.soilMapUrls).map((h: string, i: number) => ({menuName: h, menuType: i}))
       menu.splice(0, 0, {menuName: 'NA', menuType: -1})
       soilUIToolbarMachine.service.send({type: LoadingEvent.Update, payload: {mapMenu: menu}})
@@ -123,7 +129,7 @@ const toRemove = ['Longitude', 'Latitude', 'Code', 'Depth Min[cm]', 'Depth Max[c
  */
 merge(soilUIToolbarMachine.observer).subscribe({
   next: (state) => {
-    if (state.event.type === LoadingEvent.Success) {
+    if (state.value === LoadingEvent.Success) {
 
       const data = soilUIStore.soilDataState.selectedHorizonData
       const header = soilUIStore.toolbarState.selectedSoilHeader
@@ -189,7 +195,7 @@ merge(soilUIToolbarMachine.observer).subscribe({
 
 // metaClientMachine.observer.subscribe({
 //   next: (state) => {
-//     if (state.event.type === LoadingEvent.Success) {
+//     if (state.value === LoadingEvent.Success) {
 //       soilUIToolbarMachine.reset()
 //       soilUIDataMachine.reset()
 //       soilMapsMachine.reset()

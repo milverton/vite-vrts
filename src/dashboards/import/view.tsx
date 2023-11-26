@@ -12,7 +12,7 @@ import {CleanSoilDataDrop} from "./components/clean-soil-data-drop";
 import ToggleSwitch from "../../components/toggle-switch/view";
 import {useLoadMachinesState} from "../../core/machine";
 import {metaNames} from "../../lib/stores/meta/transform";
-
+import {} from "../../lib/extensions.ts";
 const Import = () => {
   useLoadMachinesState([metaMachine, metaClientMachine])
   const selectedClient = metaStore.client
