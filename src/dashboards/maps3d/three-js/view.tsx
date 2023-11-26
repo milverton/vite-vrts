@@ -41,6 +41,7 @@ export const ThreeJs = ({width, height, className} : {width: number, height: num
     try{
       let canvas = document.getElementById("three-js")
       newThree.UpdateWithRenderer(width, height, canvas)
+      console.log("NEW THREE", newThree)
       setThreeJs(newThree)
     } catch (e) {
 

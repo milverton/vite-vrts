@@ -10,6 +10,7 @@ import {ThreeJsDisposer} from "../threeJS-dispose";
 import {MyGridHelper} from "./MyGridHelper";
 import {OrbitControls} from "three/examples/jsm/controls/OrbitControls.js";
 import {Sky} from "three/examples/jsm/objects/Sky.js";
+import {GridHelper} from "three";
 
 export class ThreeJsComponent {
   public camera: THREE.PerspectiveCamera | undefined
@@ -23,7 +24,7 @@ export class ThreeJsComponent {
   public isInitialized = false
   public sceneObjects = []
 
-  private gridHelper = null
+  private gridHelper: GridHelper = new GridHelper() || undefined
 
   private sky = null
 
@@ -52,9 +53,9 @@ export class ThreeJsComponent {
     this.renderer.setPixelRatio((window.devicePixelRatio) ? window.devicePixelRatio : 1);
     this.renderer.shadowMap.enabled = true;
     this.renderer.sortObjects = true
+    this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     this.renderer.toneMappingExposure = 1
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping
-    this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
 
     // CAMERA SETTINGS ----
@@ -110,8 +111,10 @@ export class ThreeJsComponent {
 
     // @ts-ignore
     this.gridHelper.UpdateColors(newColor,newColor)
-    // @ts-ignore
-    this.gridHelper.material.opacity = opacityFactor
+
+    if(opacityFactor != undefined && this.gridHelper != null){
+      this.gridHelper.material.opacity = opacityFactor
+    }
     this.light.intensity = this.normalize(height, -10, 5) * 0.7
     this.light2.intensity = this.normalize(height, -10, 5) * 0.8
 
@@ -121,6 +124,7 @@ export class ThreeJsComponent {
     let newColor2 = new THREE.Color().lerpColors(minColor, maxColor, colorValue)
     this.light2.color = newColor2
     this.light.color = newColor2
+
   }
 
 
@@ -167,7 +171,7 @@ export class ThreeJsComponent {
     return mesh
   }
 
-  public CreateMeshWithMaterial(geometry: THREE.Mesh, material: THREE.MeshPhongMaterial, bbox: BoundingBox) {
+  public CreateMeshWithMaterial(geometry: THREE.Mesh, material: THREE.MeshPhysicalMaterial, bbox: BoundingBox) {
     // @ts-ignore
     let mesh = new THREE.Mesh(geometry, material)
     mesh.position.set(bbox.width / 2, -25, bbox.height / 2)
@@ -313,14 +317,14 @@ export class MeshMaterials {
     return Promise.all(materialPromises)
   }
   // @ts-ignore
-  private static GetBaseSatelliteMaterial = (texture: any, status: number): Promise<MeshPhysicalMaterial> => {
+  private static GetBaseSatelliteMaterial = (texture: any, status: number): Promise<THREE.MeshPhysicalMaterial> => {
     if (status === MapStatus.Disabled)  {
       return new Promise((resolve, _) => resolve(MeshMaterials.BaseEmptyMaterial))
     }
     return new Promise((resolve, _reject) => {
       // If the material has already been loaded, return it
       if (texture === MeshMaterials.SatelliteMaterial.texture) {
-        resolve(MeshMaterials.SatelliteMaterial.material)
+        resolve(MeshMaterials.SatelliteMaterial.material as THREE.MeshPhysicalMaterial)
         return
       }
       let material = new THREE.MeshPhysicalMaterial({
@@ -329,7 +333,7 @@ export class MeshMaterials {
         side: THREE.DoubleSide,
         depthWrite: true,
       })
-      material.toneMapped = false
+      material.toneMapped = true;
       MeshMaterials.SatelliteMaterial.texture = texture
       // @ts-ignore
       MeshMaterials.SatelliteMaterial.material = material
@@ -365,8 +369,7 @@ export class MeshMaterials {
           depthWrite: true,
           opacity: threeJsStore.userSettings.Opacity
         })
-        material.toneMapped = false
-
+        material.toneMapped = false;
         MeshMaterials.InterpolatedMaterial.url = url
         MeshMaterials.InterpolatedMaterial.material = material
         ThreeJsDisposer.DisposeMaterial(material).then(() => {
@@ -404,7 +407,6 @@ export class MeshMaterials {
           depthWrite: true,
           opacity: threeJsStore.userSettings.WaterOpacity
         })
-        material.toneMapped = false
 
         MeshMaterials.WaterMaterial.url = url
         MeshMaterials.WaterMaterial.material = material
