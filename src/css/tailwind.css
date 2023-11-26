@@ -1,0 +1,263 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*.btn {*/
+/*    @apply font-bold py-2 px-4 rounded border-1 border-opacity-5 border-black;*/
+/*}*/
+/*.btn {*/
+/*    @apply rounded text-gray-500 border-2 border-opacity-5 border-black bg-white;*/
+/*}*/
+.btn {
+    @apply p-2 bg-white border-1 rounded text-gray-500
+}
+.btn:hover {
+    @apply border-1 border-opacity-10 bg-gray-50 text-gray-700;
+}
+
+.pastel-gray {
+    @apply bg-gray-300;
+}
+.pastel-gray:hover {
+    @apply bg-gray-400;
+}
+
+.pastel-purple {
+    @apply bg-purple-300;
+}
+.pastel-purple:hover {
+    @apply bg-purple-400;
+}
+
+.pastel-blue {
+    @apply bg-blue-300;
+}
+.pastel-blue:hover {
+    @apply bg-blue-400 drop-shadow;
+}
+.pastel-blue-button {
+    @apply border-blue-600 text-blue-600
+}
+.pastel-blue-button:hover {
+    @apply bg-blue-50 border-blue-600 text-blue-600
+}
+
+
+.pastel-teal {
+    @apply bg-teal-300;
+}
+.pastel-teal:hover {
+    @apply bg-teal-400;
+}
+.pastel-teal-border {
+    @apply border-1 border-opacity-25 border-teal-300 focus:outline-none focus:ring-2 focus:ring-teal-300 focus:border-transparent;
+}
+.pastel-red-button {
+    @apply border-red-600 text-red-600
+}
+.pastel-red-button:hover {
+    @apply bg-red-50 border-red-600 text-red-600
+}
+.pastel-orange {
+    @apply bg-orange-50;
+}
+.pastel-orange:hover {
+    @apply bg-orange-200 drop-shadow;
+}
+.pastel-orange-button {
+    @apply border-orange-600 text-orange-600
+}
+.pastel-orange-button:hover {
+    @apply bg-orange-50 border-orange-600 text-orange-600
+}
+.pastel-orange-border {
+    @apply border-1 border-opacity-25 border-orange-300 focus:outline-none focus:ring-2 focus:ring-orange-300 focus:border-transparent;
+}
+
+.pastel-yellow {
+    @apply bg-yellow-300;
+}
+.pastel-yellow:hover {
+    @apply bg-yellow-400;
+}
+.pastel-yellow-border {
+    @apply border-1 border-opacity-25 border-yellow-300 focus:outline-none focus:ring-2 focus:ring-yellow-300 focus:border-transparent;
+}
+
+.pastel-green {
+    @apply bg-green-50;
+}
+.pastel-green:hover {
+    @apply bg-green-200 drop-shadow;
+}
+.pastel-green-button {
+    @apply border-green-600 text-green-600
+}
+.pastel-green-button:hover {
+    @apply bg-green-50 border-green-600 text-green-600
+}
+.pastel-green-border {
+    @apply border-1 border-opacity-25 border-green-300 focus:outline-none focus:ring-2 focus:ring-green-300 focus:border-transparent;
+}
+
+
+
+.charcoal-bg {
+    @apply bg-gray-800;
+}
+.charcoal-text {
+    @apply text-gray-800;
+}
+
+.pastel-border {
+    @apply border-1 border-opacity-20 border-black;
+}
+
+
+.btn-slim {
+    @apply py-1 px-2 rounded;
+}
+.btn-blue {
+    @apply bg-blue-500 text-white;
+}
+.btn-blue:hover {
+    @apply bg-blue-700 text-white;
+}
+
+.btn-green {
+    @apply bg-green-500 text-white;
+}
+.btn-green:hover {
+    @apply bg-green-700;
+}
+
+.btn-orange {
+    @apply bg-orange-500 text-white;
+}
+.btn-orange:hover {
+    @apply bg-orange-700;
+}
+
+.btn-red {
+    @apply bg-red-500 text-white;
+}
+.btn-red:hover {
+    @apply bg-red-700;
+}
+
+.btn-gray {
+    @apply bg-white text-gray-500 border-gray-200;
+}
+.btn-gray:hover {
+    @apply bg-gray-700;
+}
+
+.bubble {
+    @apply font-bold py-2 px-4 rounded;
+}
+
+.bubble-gray {
+    @apply bg-gray-700 text-white;
+}
+/*.bubble-gray:hover {*/
+/*  @apply bg-gray-700;*/
+/*}*/
+
+.border-1 {
+    border-width: 1px;
+}
+
+.button-pulse {
+    @apply animate-pulse;
+}
+
+
+.warn {
+    @apply accent-orange-500;
+}
+
+.failure {
+    @apply accent-red-500;
+}
+/*https://stackoverflow.com/questions/45507970/how-can-i-change-the-color-of-a-progress-bar-value-in-html*/
+progress {
+    @apply bg-transparent;
+}
+
+progress::-moz-progress-bar {
+    @apply bg-transparent;
+}
+
+progress::-webkit-progress-value {
+    @apply bg-indigo-500;
+}
+
+progress::-webkit-progress-bar {
+    @apply bg-transparent;
+}
+.lbl-fat-badge {
+    @apply p-2 text-base text-sm text-gray-500 text-center rounded font-bold border-1 border-transparent;
+}
+.lbl-sm {
+    @apply text-sm font-normal text-gray-500;
+}
+.lbl-xs {
+    @apply text-xs font-normal text-gray-500;
+}
+
+.lbl-normal {
+    @apply my-1 text-base font-normal text-gray-500;
+}
+
+.lbl-badge {
+    @apply p-1 text-center rounded font-bold;
+}
+.border-inactive {
+    @apply border-1 border-solid border-opacity-10 border-black;
+}
+.border-active {
+    @apply border-1 border-solid border-opacity-30 border-black;
+}
+.lbl-ring-outer {
+    @apply relative border border-gray-300 rounded-md px-2 py-2 shadow-sm focus-within:ring-1 focus-within:ring-blue-200 focus-within:border-blue-200;
+}
+.lbl-ring-inner {
+    @apply absolute -top-2 left-2 -mt-px inline-block px-1 bg-white text-xs font-medium;
+}
+.control-container {
+    @apply flex flex-auto;
+}
+.control-container-col {
+    @apply flex flex-col;
+}
+.control-container-empty {
+    @apply flex flex-col w-40 min-h-[4em];
+}
+.string-select {
+    @apply block pr-10 border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 rounded-md;
+}
+.number-input-normal {
+    @apply px-2 rounded border-gray-300 text-base;
+}
+.number-input-sm {
+    @apply px-2 py-2 border-1 rounded border-gray-300 text-sm;
+}
+.number-input-standard {
+    @apply px-4 py-2 rounded border-gray-300 text-sm;
+}
+.number-input-xs {
+    @apply px-2 rounded border-gray-300 text-xs;
+}
+.toggle-middle {
+    @apply flex flex-grow items-center justify-center;
+}
+
+.border-failure {
+    @apply border-2 border-solid border-opacity-60 border-red-500;
+}
+.border-info {
+    @apply border-2 border-solid border-opacity-60 border-blue-500;
+}
+.border-success {
+    @apply border-2 border-solid border-opacity-60 border-green-500;
+}
