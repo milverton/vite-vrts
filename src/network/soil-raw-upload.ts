@@ -1,4 +1,4 @@
-import {LoadingEvent, LoadingMachine, LoadingState} from "../core/machine";
+import {LoadingEvent, LoadingMachine} from "../core/machine";
 import {prepareUpload, readFileHandler} from "./common";
 import {post} from "../core/network";
 import {UPLOAD_URL} from "../lib/stores/soil/model";
@@ -9,11 +9,11 @@ import {logWarning} from "../lib/stores/logging";
 export const networkSoilRawUploadMachine = new LoadingMachine('Network Soil Raw Upload Machine');
 networkSoilRawUploadMachine.observer.subscribe({
   next: (state) => {
-    switch (state.value) {
-      case LoadingState.Empty:
+    switch (state.type) {
+      case LoadingEvent.Reset:
         break;
-      case LoadingState.Loading:
-        const {event, meta} = state.event.payload
+      case LoadingEvent.Load:
+        const {event, meta} = state.payload
         readFileHandler(event).then(({data, mime}) => {
           prepareUpload(mime, data, meta).then(({manifest, owner, payload}) => {
             post(`${UPLOAD_URL}/soil-raw`, {
@@ -22,20 +22,27 @@ networkSoilRawUploadMachine.observer.subscribe({
               payload,
             })
               .then((data) => {
-                networkSoilRawUploadMachine.service.send(LoadingEvent.Success);
+                networkSoilRawUploadMachine.success();
                 networkSoilRawUploadMachine.reset()
                 updateMetaChannel(data)
               })
-              .catch((_) => {
-                networkSoilRawUploadMachine.service.send(LoadingEvent.Failure);
+              .catch((e) => {
+                networkSoilRawUploadMachine.fail(e.toString());
                 // logServerFailure(e, "f4dfa636")
               });
           })
         }).catch((e) => {
-          networkSoilRawUploadMachine.service.send(LoadingEvent.Failure);
+          networkSoilRawUploadMachine.fail(e.toString());
           logWarning("Importing Soil Raw Failed", e)
         })
         break;
+      case LoadingEvent.Success:
+        break
+      case LoadingEvent.Failure:
+        break
+      default:
+        networkSoilRawUploadMachine.fail(`Unknown event: ${state.type}, state: ${state.value}`);
+        break
     }
   }
 });

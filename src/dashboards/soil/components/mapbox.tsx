@@ -18,18 +18,28 @@ import {BoundingBox} from "../../../core/bounding-box";
 
 
 // Use React Leaflet hook to alter behaviour
-const MapEvents = ({fitMap, setZoom, boundary}: {fitMap: number, setZoom: (n:number) => void, boundary: NewBoundary[]}) => {
-  // console.log("MAP EVENTS", fitMap)
+const MapEvents = ({mapFit, updateNumber,boundary}: {mapFit: number, updateNumber:number, setZoom: (n:number) => void, boundary: NewBoundary[]}) => {
+
   // update zoom
   const map = useMapEvents({
-    zoomend: () => {
-      setZoom(map.getZoom())
-    },
+    // zoomend: () => {
+    //   console.log("ZOOM END", map.getZoom())
+    //   setZoom(map.getZoom())
+    // },
     // click: () => {
     //
     // }
 
   })
+  // L.control.zoom({
+  //   position: 'topright'
+  // }).addTo(map);
+  let mapFitCalc = mapFit
+  if (mapFitCalc === 0) {
+    mapFitCalc = updateNumber + boundary.length
+  }
+
+
   // fit map to boundaries
   useEffect(() => {
 
@@ -43,11 +53,11 @@ const MapEvents = ({fitMap, setZoom, boundary}: {fitMap: number, setZoom: (n:num
         minMaxX.update(maxX)
         minMaxY.update(maxY)
       })
-      // console.log("FIT MAP", fitMap, boundary)
+
       map.fitBounds([[minMaxY.min, minMaxX.min], [minMaxY.max, minMaxX.max]])
     }
 
-  }, [fitMap])
+  }, [mapFitCalc])
 
   return null
 }
@@ -69,6 +79,7 @@ const MapOverlay = ({overlay, opacity, bbox,mapVariant}: {overlay:Maybe<MapOverl
 }
 
 export interface MapBoxProps {
+  updateNumber: number
   className: string
   mapBoxSetup: MapBoxSetup
   mapSize: MenuProps
@@ -85,7 +96,11 @@ export interface MapBoxProps {
   mapFit: number
 }
 
-const MapBox = ({className,mapBoxSetup,points,showZoomControl,scrollToZoom,showPoints,showBoundaries,selectedMap, mapOpacity, mapZoom, setMapZoom, mapFit}:MapBoxProps) => {
+
+
+
+
+const MapBox = ({updateNumber,className,points,mapBoxSetup, showZoomControl,scrollToZoom,showPoints,showBoundaries,selectedMap, mapOpacity, mapZoom, setMapZoom, mapFit}:MapBoxProps) => {
 
   // FIXME: pass in mapUrls
   const mapUrls = soilStore.maps.soilMapUrls
@@ -97,47 +112,29 @@ const MapBox = ({className,mapBoxSetup,points,showZoomControl,scrollToZoom,showP
   let fsbBnd = selectedBoundary.first()
   const keyBase = fsbBnd?.block + fsbBnd?.client + fsbBnd?.field
 
-  // @ts-ignore
   return (
-    <MapContainer
-      key={keyBase}
-      className={classNames(className)}
-      // @ts-ignore
-      center={center}
-      zoom={mapZoom}
-      zoomControl={showZoomControl}
-      scrollWheelZoom={scrollToZoom}
-      style={{width: '100%', height: "100%"}}
-    >
-      <MapEvents fitMap={mapFit} setZoom={setMapZoom} boundary={selectedBoundary}/>
-      <BoundaryOverlay key={keyBase + 'bo'} show={showBoundaries} boundary={selectedBoundary}/>
-      <MapOverlay overlay={urlData} mapVariant={selectedMapVariant} bbox={bbox} selectedBoundary={selectedBoundary} opacity={mapOpacity} />
-      <PointsOverlay show={showPoints}/>
-    </MapContainer>
+    <>
+      <MapContainer
+                    key={keyBase}
+                    className={classNames(className)}
+                    // @ts-ignore
+                    center={center}
+                    zoom={mapZoom}
+                    zoomControl={showZoomControl}
+                    scrollWheelZoom={scrollToZoom}
+                    style={{width: '100%', height: "100%"}}>
+        <MapEvents mapFit={mapFit} updateNumber={updateNumber} setZoom={setMapZoom} boundary={selectedBoundary}/>
+        <TileLayer
+          // @ts-ignore
+          attribution={mapBoxSetup.attribution}
+          url={mapBoxSetup.url}
+          keepBuffer={100} />
+        <BoundaryOverlay key={keyBase + 'bo'} show={showBoundaries} boundary={selectedBoundary}/>
+        <MapOverlay overlay={urlData} mapVariant={selectedMapVariant} bbox={bbox} selectedBoundary={selectedBoundary} opacity={mapOpacity} />
+        <PointsOverlay show={showPoints}/>
+      </MapContainer>
+    </>
   )
-  // return (
-  //   <>
-  //     <MapContainer
-  //                   key={keyBase}
-  //                   className={classNames(className)}
-  //                   // @ts-ignore
-  //                   center={center}
-  //                   zoom={mapZoom}
-  //                   zoomControl={showZoomControl}
-  //                   scrollWheelZoom={scrollToZoom}
-  //                   style={{width: '100%', height: "100%"}}>
-  //       <MapEvents fitMap={mapFit} setZoom={setMapZoom} boundary={selectedBoundary}/>
-  //       <TileLayer
-  //         // @ts-ignore
-  //         attribution={mapBoxSetup.attribution}
-  //         url={mapBoxSetup.url}
-  //         keepBuffer={100} />
-  //       <BoundaryOverlay key={keyBase + 'bo'} show={showBoundaries} boundary={selectedBoundary}/>
-  //       <MapOverlay overlay={urlData} mapVariant={selectedMapVariant} bbox={bbox} selectedBoundary={selectedBoundary} opacity={mapOpacity} />
-  //       <PointsOverlay show={showPoints}/>
-  //     </MapContainer>
-  //   </>
-  // )
 }
 
 export default MapBox

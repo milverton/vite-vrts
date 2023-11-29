@@ -106,7 +106,7 @@ export const UpdateMeshWithScaledPositions = (newThree: ThreeJsComponent, square
 }
 
 export const UpdateBoundariesWithScaledPositions = (newThree: ThreeJsComponent, squaredHeight:number, forceRun:boolean) => {
-  console.log("RUNNING UpdateBoundariesWithScaledPositions")
+  // console.log("RUNNING UpdateBoundariesWithScaledPositions")
   if(forceRun || squaredHeight !== threeJsStore.userSettings.SquaredHeight){
     // console.log("RUNNING UpdateBoundariesWithScaledPositions IN FORCE RUN", threeJsStore.basicState.BoundaryElevationData)
     for(let lineIdx = 0; lineIdx < newThree.boundaries.length; lineIdx++){

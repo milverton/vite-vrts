@@ -2,7 +2,7 @@
 import {groupMetasByClient, metaTreeByClient,} from "./transform"
 import {just, Maybe, nothing} from "true-myth/maybe";
 import {logWarning} from "../logging";
-import {LoadingEvent, LoadingMachine, LoadingState,} from "../../../core/machine";
+import {LoadingEvent, LoadingMachine} from "../../../core/machine";
 import {fltTrue} from "../../common";
 import {networkMetaMachine, networkMetaStore} from "../../../network/meta";
 import {Meta, parseMetas} from "../../../core/meta";
@@ -50,7 +50,7 @@ const resetMetaStore = (): MetaStoreState => {
 }
 export let metaStore: MetaStoreState = resetMetaStore()
 
-export const metaMachine = new LoadingMachine('Meta Machine')
+
 
 
 const updateMetaTree = () => {
@@ -101,48 +101,47 @@ const updateState = (metas: Meta[], _context: any) => {
   return client
 
 }
-
+export const metaMachine = new LoadingMachine('Meta Machine')
 metaMachine.observer.subscribe({
-  next: (state) => {
-    switch (state.value) {
-      case LoadingState.Empty:
+  next: (state: any) => {
+    switch (state.type) {
+      case LoadingEvent.Reset:
         metaStore = {...metaStore, metas: []}
         break
-      case LoadingState.Updating:
-        if (!state.event) {
-          console.warn(state)
-          return
-        }
-        const payload = state.event.payload
+      case LoadingEvent.Update:
+        const payload = state.payload
         if (payload === undefined || payload.metas === undefined) {
-          metaMachine.service.send(LoadingEvent.Failure)
+          metaMachine.fail('No payload or payload.metas')
           return
         }
 
         if (payload.metas.length > 0) {
           const client = updateState(payload.metas, state.context)
-          metaClientMachine.service.send({type: LoadingEvent.Update, payload: {client}})
-          metaMachine.service.send(LoadingEvent.Success)
+          metaMachine.success()
+          metaClientMachine.service.send(LoadingEvent.Update,{client})
+
           return
         }
-        metaMachine.service.send(LoadingEvent.Failure)
+        metaMachine.fail('No payload.metas')
         break
-        }
+      case LoadingEvent.Success:
+        break
+      case LoadingEvent.Failure:
+        break
+      default:
+        metaMachine.fail(`Unhandled state ${state.type}`)
+        break
 
-
-
-
-  }
+  }}
 })
 
 
 networkMetaMachine.observer.subscribe({
   next: (state) => {
-    if (state.value == LoadingEvent.Success) {
+    if (state.type == LoadingEvent.Success) {
       let metas = parseMetas(networkMetaStore.data)
-      metaMachine.service.send({type: LoadingEvent.Update, payload: {metas: metas}})
+      metaMachine.service.send(LoadingEvent.Update, {metas: metas})
     }
-
   }
 });
 
@@ -166,19 +165,15 @@ const createRecordDetail = (selectedClient: Maybe<DBMetaGroup>) => {
 export const metaClientMachine = new LoadingMachine('Meta Client Machine')
 metaClientMachine.observer.subscribe({
   next: (state) => {
-    switch (state.value) {
-      case LoadingState.Empty:
+    switch (state.type) {
+      case LoadingEvent.Reset:
         metaStore = {...metaStore, client: nothing()}
         break
-      case LoadingState.Updating:
-        if (!state.event) {
-          console.warn(state)
-          return
-        }
-        let client = state.event.payload.client
+      case LoadingEvent.Update:
+        let client = state.payload.client
 
         if (client === undefined) {
-          metaClientMachine.service.send(LoadingEvent.Failure)
+          metaClientMachine.fail('No payload.client')
           return
         }
 
@@ -189,7 +184,7 @@ metaClientMachine.observer.subscribe({
             seasonSelected: client.value.season(),
             clientBools: createRecordDetail(client)
           }
-          metaClientMachine.service.send(LoadingEvent.Success)
+          metaClientMachine.success()
           return
         }
         if (client.isNothing) {
@@ -198,10 +193,17 @@ metaClientMachine.observer.subscribe({
           }
 
           metaStore = {...metaStore, nextClient: nothing(), client: nothing(), seasonSelected: 0}
-          metaClientMachine.service.send(LoadingEvent.Success)
+          metaClientMachine.success()
           return
         }
-        metaClientMachine.service.send(LoadingEvent.Failure)
+        metaClientMachine.fail('(Fallthrough) No payload.client')
+        break
+      case LoadingEvent.Success:
+        break
+      case LoadingEvent.Failure:
+        break
+      default:
+        metaClientMachine.fail(`Unhandled state ${state.type}`)
         break
     }
   }
@@ -210,145 +212,22 @@ metaClientMachine.observer.subscribe({
 export const metaNextClientMachine = new LoadingMachine('Meta Next Client Machine')
 metaNextClientMachine.observer.subscribe({
   next: (state) => {
-    switch (state.value) {
-      case LoadingState.Empty:
+    switch (state.type) {
+      case LoadingEvent.Reset:
         metaStore = {...metaStore, nextClient: nothing()}
         break
-      case LoadingState.Updating:
-        if (!state.event) {
-          console.warn(state)
-          return
-        }
-        let payload = state.event.payload
+      case LoadingEvent.Update:
+        let payload = state.payload
         if (payload !== undefined && payload.length > 0) {
           metaStore = {...metaStore, nextClient: just(payload)}
-          metaNextClientMachine.service.send(LoadingEvent.Success)
+          metaNextClientMachine.success()
           return
         }
-        metaNextClientMachine.service.send(LoadingEvent.Failure)
+        metaNextClientMachine.fail('(Fallthrough) No payload')
+        break
+      default:
+        metaNextClientMachine.fail(`Unhandled state ${state.type}`)
         break
     }
   }
 })
-//
-// let metaChangesStore: MetaChanges = {update: [], delete: []}
-//
-// export const metaChangesMachine = new LoadingMachine('Meta Changes Machine')
-// metaChangesMachine.observer.subscribe({
-//   next: (state) => {
-//     switch (state.value) {
-//       case LoadingState.Empty:
-//         metaChangesStore = {update: [], delete: []}
-//         break
-//       case LoadingState.Updating:
-//         const payload = state.event.payload as MetaChanges
-//         if (payload) {
-//           metaChangesStore = payload
-//
-//           applyMetaChanges(metaStore.metas, payload)
-//             .then((changedMetas: DBMeta[]) => {
-//               // Better to store changedMetas
-//               metaMachine.reset()
-//               metaMachine.service.send({type: LoadingEvent.Update, payload: {metas: changedMetas}})
-//               metaChangesMachine.service.send(LoadingEvent.Success)
-//             })
-//             .catch((e) => {
-//               metaChangesMachine.service.send(LoadingEvent.Failure)
-//               logFailure('Failed to apply metadata changes', e)
-//             })
-//           return
-//         }
-//         metaChangesMachine.service.send(LoadingEvent.Failure)
-//
-//     }
-//   }
-// })
-
-// export const metaNetworkMachine = new LoadingMachine('Meta Network Machine')
-// metaNetworkMachine.observer.subscribe({
-//   next: (state) => {
-//     switch (state.value) {
-//       case LoadingState.Empty:
-//         metaStore = {...metaStore, networkUpdateCount: 0}
-//         break
-//       case LoadingState.Updating:
-//         // const payload = state.event.payload
-//         metaStore = {...metaStore, networkUpdateCount: metaStore.networkUpdateCount + 1}
-//         metaNetworkMachine.service.send(LoadingEvent.Success)
-//         break
-//     }
-//   }
-// })
-
-
-
-// export const metaNoteSaveMachine = new LoadingMachine('Meta Note Save Machine')
-// metaNoteSaveMachine.observer.subscribe(
-//   (state) => {
-//     switch (state.value) {
-//       case LoadingState.Empty:
-//         metaStore = {...metaStore, clientNote: nothing()}
-//         break
-//       case LoadingState.Loading:
-//         const {client, note} = state.event.payload as { client: Maybe<DBMetaGroup>, note: Maybe<string> }
-//         if (!client.isJust) {
-//           metaNoteSaveMachine.service.send(LoadingEvent.Failure)
-//           return
-//         }
-//
-//         if (client.isJust) {
-//           post(`http://127.0.0.1:3000/api/v1/note/${client.value.dealer()}/${client.value.client()}`, {note: note.unwrapOr('')})
-//             .then(result => {
-//               const changes = parseServerResponse(result)
-//               if (changes.isOk) {
-//                 metaStore = {...metaStore, clientNote: note}
-//                 metaChangesMachine.service.send({type: LoadingEvent.Update, payload: {...changes.value}})
-//                 metaNoteSaveMachine.service.send(LoadingEvent.Success)
-//               }
-//               if (changes.isErr) {
-//                 logFailure('Error saving note', changes.error)
-//               }
-//             })
-//         }
-//         break
-//     }
-//   }
-// )
-// export const metaNoteLoadMachine = new LoadingMachine('Meta Note Load Machine')
-// metaNoteLoadMachine.observer.subscribe(
-//   (state) => {
-//     switch (state.value) {
-//       case LoadingState.Empty:
-//         metaStore = {...metaStore, clientNote: nothing()}
-//         break
-//       case LoadingState.Loading:
-//         const client = state.event.payload
-//         if (!client.isJust) {
-//           metaNoteLoadMachine.service.send(LoadingEvent.Failure)
-//           return
-//         }
-//         const noteMeta = getSelectedNote(metaStore.client, metaStore.seasonSelected,metaStore.metasByGroup)
-//         if (!noteMeta.isJust && metaStore.client.isJust) {
-//           metaNoteLoadMachine.service.send(LoadingEvent.Failure)
-//           return
-//         }
-//
-//         loadClientNote(noteMeta.value.dealer, noteMeta.value.client)
-//           .then((note) => {
-//             metaStore = {...metaStore, clientNote: just(note), selectedNoteMeta: noteMeta}
-//             metaNoteLoadMachine.service.send(LoadingEvent.Success)
-//           })
-//           .catch(logServerFailure)
-//
-//     }
-//   }
-// )
-
-// metaClientMachine.observer.subscribe(
-//   (state) => {
-//     if (state.value === LoadingEvent.Success) {
-//       metaNoteLoadMachine.reset()
-//       metaNoteLoadMachine.service.send({type: LoadingEvent.Load, payload: {client: metaStore.client}})
-//     }
-//   }
-// )

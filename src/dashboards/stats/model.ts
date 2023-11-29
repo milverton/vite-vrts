@@ -1,5 +1,6 @@
 import {emptyCsv, ICsv} from "../../lib/csv";
-import {SoilHorizonsMenu} from "../soil/model";
+import {SelectedPoint, SoilHorizonsMenu} from "../soil/model";
+import {Maybe, nothing} from "true-myth/maybe";
 
 export const statsXHeaders = [
   "EM 50",
@@ -269,7 +270,20 @@ export const resetStatsReport = (): StatsReportState => {
     slideReportItems: [],
   }
 }
+export interface UISharedState {
+  statsUISelectedRowAtom: number
+  soilUISelectedPointAtom: Maybe<SelectedPoint>
+}
+export const resetSharedState = (): UISharedState => {
+  return {
+    statsUISelectedRowAtom: -1,
+    soilUISelectedPointAtom: nothing<SelectedPoint>()
+  }
+}
 
+
+
+export let uiSharedState = resetSharedState()
 export interface StatsState {
   uiXYState: StatsUIForXYState
   uiRegressionState: StatsUIForRegressionsState
@@ -277,6 +291,7 @@ export interface StatsState {
   regressionState: StatsRegressionDataState
   outliersState: StatsOutliersState
   reportState: StatsReportState
+  uiSharedState: UISharedState
 }
 export const resetStats = (): StatsState => {
   return {
@@ -286,5 +301,6 @@ export const resetStats = (): StatsState => {
     regressionState: resetStatsRegressionData(),
     outliersState: resetStatsOutliers(),
     reportState: resetStatsReport(),
+    uiSharedState: resetSharedState(),
   }
 }

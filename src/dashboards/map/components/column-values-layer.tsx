@@ -12,11 +12,11 @@ export const ColumnValuesLayer = ({fn, toggle}: { fn: MapLayerSelection, toggle:
   const [pointPercentage, setPointPercentage] = useState(mapStore.mapLayerInputsState.columnValuesPercentageToShow)
 
   useEffect(() => {
-    mapStoreInputsMachine.service.send({type: LoadingEvent.Update, payload: {columnValuesPointSize: pointSize}})
+    mapStoreInputsMachine.service.send(LoadingEvent.Update, {columnValuesPointSize: pointSize})
   }, [pointSize])
 
   useEffect(() => {
-    mapStoreInputsMachine.service.send({type: LoadingEvent.Update, payload: {columnValuesPercentageToShow: pointPercentage}})
+    mapStoreInputsMachine.service.send(LoadingEvent.Update, {columnValuesPercentageToShow: pointPercentage})
   }, [pointPercentage])
 
   return (

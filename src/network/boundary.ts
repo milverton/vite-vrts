@@ -1,5 +1,5 @@
 
-import {LoadingEvent, LoadingMachine, LoadingState} from "../core/machine";
+import {LoadingEvent, LoadingMachine} from "../core/machine";
 
 import {NewBoundary} from "../lib/stores/boundary/model";
 
@@ -11,19 +11,19 @@ export let networkBoundaryAllFieldsStore = {
 export const networkBoundaryAllFieldsMachine = new LoadingMachine('Network Boundary All Fields Machine');
 networkBoundaryAllFieldsMachine.observer.subscribe({
   next: (state) => {
-    switch (state.value) {
-      case LoadingState.Empty:
+    switch (state.type) {
+      case LoadingEvent.Reset:
         // Reset the store
         networkBoundaryAllFieldsStore = {
           data: {},
           error: {}
         };
         break;
-      case LoadingState.Loading:
-        const meta = state.event.payload;
+      case LoadingEvent.Load:
+        const meta = state.payload;
         if (meta === undefined || meta.uid === undefined) {
           networkBoundaryAllFieldsStore.error = "Meta is undefined";
-          networkBoundaryAllFieldsMachine.service.send({ type: LoadingEvent.Failure });
+          networkBoundaryAllFieldsMachine.service.send(LoadingEvent.Failure );
           return;
         }
         fetch(`http://localhost:3001/api/v1/boundary/all/vrts/${meta.uid}`)
@@ -41,14 +41,22 @@ networkBoundaryAllFieldsMachine.observer.subscribe({
               boundaries.push(new NewBoundary(x.exterior_ring, x.interior_ring, x.bounding_box, x.client, x.block, x.field));
             }
             networkBoundaryAllFieldsStore.data = {meta,boundaries};
-            networkBoundaryAllFieldsMachine.service.send({ type: LoadingEvent.Success });
+            networkBoundaryAllFieldsMachine.success();
           })
           .catch(error => {
             console.error('There has been a problem with your fetch operation:', error);
             networkBoundaryAllFieldsStore.error = error.message;
-            networkBoundaryAllFieldsMachine.service.send({ type: LoadingEvent.Failure });
+            networkBoundaryAllFieldsMachine.fail(`Error fetching boundary: ${error.toString()}`);
           });
         break;
+      case LoadingEvent.Success:
+        break
+      case LoadingEvent.Failure:
+        break;
+        default:
+          networkBoundaryAllFieldsMachine.fail(`Unknown event: ${state.type}, state: ${state.value}`);
+          break
+
     }
 
   }

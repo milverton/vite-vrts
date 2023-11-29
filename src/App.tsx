@@ -152,11 +152,12 @@ import {networkPingMachine} from "./network/ping.ts";
 import {LoadingEvent} from "./core/machine.ts";
 import {networkMetaMachine} from "./network/meta.ts";
 import loadGlobal from "./lib/stores/global/store.ts";
-import {metaMachine} from "./lib/stores/meta/store.ts";
 import Import from "./dashboards/import/view.tsx";
 import Export from "./dashboards/export/view.tsx";
 import Photos from "./dashboards/photos/view.tsx";
 import Maps3D from "./dashboards/maps3d/view.tsx";
+import Soil from "./dashboards/soil/view.tsx";
+import StatsView from "./dashboards/stats/view.tsx";
 
 // TODO: Find a home for global declarations
 // https://stackoverflow.com/questions/4090491/how-to-get-the-first-element-of-an-array
@@ -186,8 +187,8 @@ const App = () => {
 
     useEffect(() => {
       const fn = () => {
-        networkPingMachine.service.send({type: LoadingEvent.Update});
-        networkMetaMachine.service.send({type: LoadingEvent.Load});
+        networkPingMachine.service.send(LoadingEvent.Update);
+        networkMetaMachine.service.send(LoadingEvent.Update);
       }
       const id = setInterval(fn, 60000)
       // call immediately
@@ -197,9 +198,9 @@ const App = () => {
     //
     useEffect(() => {
       const unsub = loadGlobal()
-      metaMachine.reset()
-      metaMachine.service.send({type: LoadingEvent.Update, payload: {loadCache: true}})
-      metaMachine.service.send({type: LoadingEvent.Update, payload: {loadRemote: true}})
+      // metaMachine.reset()
+      // metaMachine.service.send(LoadingEvent.Update, {loadCache: true})
+      // metaMachine.service.send(LoadingEvent.Update, {loadRemote: true})
       return () => {
         unsub()
       }
@@ -243,13 +244,13 @@ const App = () => {
             </AppShell>
           }/>
 
-          {/*<Route path="/soil" element={*/}
-          {/*  <AppShell>*/}
-          {/*    <Suspense fallback={<div>Loading Soil...</div>}>*/}
-          {/*      <Soil/>*/}
-          {/*    </Suspense>*/}
-          {/*  </AppShell>*/}
-          {/*}/>*/}
+          <Route path="/soil" element={
+            <AppShell>
+              <Suspense fallback={<div>Loading Soil...</div>}>
+                <Soil/>
+              </Suspense>
+            </AppShell>
+          }/>
 
           <Route path="/photos" element={
             <AppShell>
@@ -259,13 +260,13 @@ const App = () => {
             </AppShell>
           }/>
 
-          {/*<Route path="/stats" element={*/}
-          {/*  <AppShell>*/}
-          {/*    <Suspense fallback={<div>Loading Stats...</div>}>*/}
-          {/*      <StatsView/>*/}
-          {/*    </Suspense>*/}
-          {/*  </AppShell>*/}
-          {/*}/>*/}
+          <Route path="/stats" element={
+            <AppShell>
+              <Suspense fallback={<div>Loading Stats...</div>}>
+                <StatsView/>
+              </Suspense>
+            </AppShell>
+          }/>
 
           <Route path="/maps3d" element={
             <AppShell>

@@ -3,7 +3,7 @@ import {metaStore} from "../meta/store";
 
 // @ts-ignore
 import {just, Maybe, nothing} from "true-myth/maybe";
-import {LoadingEvent, LoadingMachine, LoadingState} from "../../../core/machine";
+import {LoadingEvent, LoadingMachine} from "../../../core/machine";
 import {
   loadSoilMapMetas,
   loadSoilMapUrls,
@@ -56,16 +56,21 @@ export const soilMachine = new LoadingMachine('Soil Machine')
 
 soilMachine.observer.subscribe(
   (state) => {
-    switch (state.value) {
-      case LoadingState.Empty:
+    switch (state.type) {
+      case LoadingEvent.Reset:
         soilStore = {...soilStore,data: resetSoilData()}
         break
-      case LoadingState.Updating:
+      case LoadingEvent.Update:
         soilStore.data.soilSampleIds = soilStore.data.soilPoints.csv.body.map(row => row[0])
         soilStore.data.soilPointsXY = soilStore.data.soilPoints.csv.body.map(row => [parseFloat(row[1]), parseFloat(row[2])])
-        soilMachine.service.send(LoadingEvent.Success)
+        soilMachine.success()
+        break
+      case LoadingEvent.Success:
+        break
+      case LoadingEvent.Failure:
         break
       default:
+        soilMachine.fail(`Unknown event: ${state.type}, state: ${state.value}`);
         break
     }
   }
@@ -73,7 +78,7 @@ soilMachine.observer.subscribe(
 
 networkSoilPointsMachine.observer.subscribe({
   next: (state) => {
-    switch(state.value) {
+    switch(state.type) {
       case LoadingEvent.Success:
         // @ts-ignore
         soilStore.data.soilPoints = {type: CsvType.SoilPoints, csv: networkSoilPointsStore.data.csv}
@@ -81,13 +86,16 @@ networkSoilPointsMachine.observer.subscribe({
         soilStore.data.soilPointsMeta = just(networkSoilPointsStore.data.meta)
         soilMachine.service.send(LoadingEvent.Update)
         break;
+      default:
+        // networkSoilPointsMachine.fail(`Unknown event: ${state.type}, state: ${state.value}`);
+        break
     }
   }
 });
 
 networkSoilSamplesMachine.observer.subscribe({
   next: (state) => {
-    switch(state.value) {
+    switch(state.type) {
       case LoadingEvent.Success:
         // @ts-ignore
         soilStore.data.soilDataMetas = networkSoilSamplesStore.data.metas;
@@ -95,6 +103,8 @@ networkSoilSamplesMachine.observer.subscribe({
         soilStore.data.soilHorizonData = networkSoilSamplesStore.data.csvs;
         soilMachine.service.send(LoadingEvent.Update)
         break;
+        default:
+          break;
     }
   }
 });
@@ -102,11 +112,13 @@ networkSoilSamplesMachine.observer.subscribe({
 
 networkSoilPointsUploadMachine.observer.subscribe({
   next: (state) => {
-    switch(state.value) {
+    switch(state.type) {
       case LoadingEvent.Success:
         networkSoilPointsMachine.reset()
         // @ts-ignore
-        networkSoilPointsMachine.service.send(LoadingEvent.Load, {payload: metaStore.client.value})
+        networkSoilPointsMachine.service.send(LoadingEvent.Load, client.value)
+        break;
+      default:
         break;
     }
   }
@@ -114,11 +126,13 @@ networkSoilPointsUploadMachine.observer.subscribe({
 
 networkSoilSamplesUploadMachine.observer.subscribe({
 next: (state) => {
-    switch(state.value) {
+    switch(state.type) {
       case LoadingEvent.Success:
         networkSoilSamplesMachine.reset()
         // @ts-ignore
-        networkSoilSamplesMachine.service.send(LoadingEvent.Load, {payload: metaStore.client.value})
+        networkSoilSamplesMachine.service.send(LoadingEvent.Load, metaStore.client.value)
+        break;
+      default:
         break;
     }
   }
@@ -155,13 +169,13 @@ next: (state) => {
 export const soilPhotosMachine = new LoadingMachine('Soil Photos Machine')
 soilPhotosMachine.observer.subscribe({
   next: (state) => {
-    switch (state.value) {
-      case LoadingState.Empty:
+    switch (state.type) {
+      case LoadingEvent.Reset:
         soilStore = {...soilStore, photos: resetSoilPhotos()}
         break
-      case LoadingState.Loading:
+      case LoadingEvent.Load:
         if (!metaStore.client.isJust) {
-          soilPhotosMachine.service.send(LoadingEvent.Failure)
+          soilPhotosMachine.fail('No meta client')
           return
         }
         if (metaStore.client.isJust) {
@@ -169,13 +183,22 @@ soilPhotosMachine.observer.subscribe({
           const p2 = loadSoilPhotoUrls(soilStore, metaStore.client.value)
           Promise.all([p1,p2])
             .then(() => {
-              soilPhotosMachine.service.send(LoadingEvent.Success)
+              soilPhotosMachine.success()
             })
             .catch((e) => {
               logDebug('Error loading soil photos', e)
-              soilPhotosMachine.service.send(LoadingEvent.Failure)
+              soilPhotosMachine.fail(`Error loading soil photos: ${e.toString()}`)
             })
         }
+        break;
+      case LoadingEvent.Success:
+        break
+      case LoadingEvent.Failure:
+        break
+      default:
+        soilPhotosMachine.fail(`Unknown event: ${state.type}, state: ${state.value}`);
+        break
+
 
     }
   }
@@ -183,10 +206,12 @@ soilPhotosMachine.observer.subscribe({
 
 networkSoilPhotoUploadMachine.observer.subscribe({
   next: (state) => {
-    switch(state.value) {
+    switch(state.type) {
       case LoadingEvent.Success:
         soilPhotosMachine.reset()
         soilPhotosMachine.service.send(LoadingEvent.Load)
+        break;
+      default:
         break;
     }
   }
@@ -195,13 +220,13 @@ networkSoilPhotoUploadMachine.observer.subscribe({
 export const soilMapsMachine = new LoadingMachine('Soil Maps Machine')
 soilMapsMachine.observer.subscribe({
   next: (state) => {
-    switch (state.value) {
-      case LoadingState.Empty:
+    switch (state.type) {
+      case LoadingEvent.Reset:
         soilStore = {...soilStore, maps: resetSoilMaps()}
         break
-      case LoadingState.Loading:
+      case LoadingEvent.Load:
         if (!metaStore.client.isJust) {
-          soilMapsMachine.service.send(LoadingEvent.Failure)
+          soilMapsMachine.fail('No meta client')
           return
         }
         if (metaStore.client.isJust) {
@@ -210,15 +235,21 @@ soilMapsMachine.observer.subscribe({
           Promise.all([p1,p2])
             .then(() => {
               // console.log(soilStore)
-              soilMapsMachine.service.send(LoadingEvent.Success)
+              soilMapsMachine.success()
             })
             .catch((e) => {
-              console.error('Error loading soil maps', e)
               logDebug('Error loading soil maps', e)
-              soilMapsMachine.service.send(LoadingEvent.Failure)
+              soilMapsMachine.fail(`Error loading soil maps: ${e.toString()}`)
             })
         }
-
+        break;
+      case LoadingEvent.Success:
+        break
+      case LoadingEvent.Failure:
+        break
+      default:
+        soilMapsMachine.fail(`Unknown event: ${state.type}, state: ${state.value}`);
+        break
     }
   }
 })

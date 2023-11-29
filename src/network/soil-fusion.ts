@@ -1,4 +1,4 @@
-import {LoadingEvent, LoadingMachine, LoadingState} from "../core/machine";
+import {LoadingEvent, LoadingMachine} from "../core/machine";
 
 import {DBMetaGroup} from "../lib/db";
 // @ts-ignore
@@ -15,25 +15,25 @@ export let networkSoilFusionStore = {
 export const networkSoilFusionMachine = new LoadingMachine('Network Soil Fusion Machine');
 networkSoilFusionMachine.observer.subscribe({
   next: (state) => {
-    switch (state.value) {
-      case LoadingState.Empty:
+    switch (state.type) {
+      case LoadingEvent.Reset:
         // Reset the store
         networkSoilFusionStore = {
           data: {csv: emptyCsv(), meta: {}},
           error: {}
         };
         break;
-      case LoadingState.Loading:
-        let clientMaybe = state.event.payload as Maybe<DBMetaGroup>;
+      case LoadingEvent.Load:
+        let clientMaybe = state.payload as Maybe<DBMetaGroup>;
         if (!clientMaybe.isJust) {
-          networkSoilFusionMachine.service.send({ type: LoadingEvent.Failure })
+          networkSoilFusionMachine.fail(`No client found`)
           return
         }
         const client = clientMaybe.value;
         const meta = client.getSoilFusionData();
         if (!meta) {
           console.warn('No soil fusion meta data found')
-          networkSoilFusionMachine.service.send({ type: LoadingEvent.Failure })
+          networkSoilFusionMachine.fail(`No soil fusion meta data found`)
           return
         }
 
@@ -51,14 +51,21 @@ networkSoilFusionMachine.observer.subscribe({
           })
           .then(data => {
             networkSoilFusionStore.data = {csv: data, meta};
-            networkSoilFusionMachine.service.send({ type: LoadingEvent.Success });
+            networkSoilFusionMachine.success();
           })
           .catch(error => {
             console.error('There has been a problem with your fetch operation:', error);
             networkSoilFusionStore.error = error.message;
-            networkSoilFusionMachine.service.send({ type: LoadingEvent.Failure });
+            networkSoilFusionMachine.fail(error.message);
           });
         break;
+      case LoadingEvent.Success:
+        break
+      case LoadingEvent.Failure:
+        break;
+      default:
+        networkSoilFusionMachine.fail(`Unknown event: ${state.type}, state: ${state.value}`);
+        break
     }
 
   }
@@ -66,7 +73,7 @@ networkSoilFusionMachine.observer.subscribe({
 
 networkSoilFusionMachine.observer.subscribe({
   next: (state) => {
-    switch(state.value) {
+    switch(state.type) {
       case LoadingEvent.Success:
         soilStore.data.soilFusion = {type: CsvType.SoilFusion, csv: networkSoilFusionStore.data.csv}
         fusionMachine.reset()

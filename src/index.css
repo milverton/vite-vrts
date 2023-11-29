@@ -261,3 +261,5 @@ progress::-webkit-progress-bar {
 .border-success {
     @apply border-2 border-solid border-opacity-60 border-green-500;
 }
+
+.leaflet-control-container { position: absolute; top: 100px; }

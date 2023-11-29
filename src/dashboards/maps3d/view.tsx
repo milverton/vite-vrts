@@ -102,12 +102,10 @@ const Maps3D = () => {
   }
 
   useEffect(() => {
-    threeJsSceneSettingsMachine.service.send({
-      type: LoadingEvent.Update, payload: {
+    threeJsSceneSettingsMachine.service.send(LoadingEvent.Update,{
         autoRotateSpeed: rotateSpeed,
         sunAngle: sunAngle,
         sunHeight: sunHeight
-      }
     })
   }, [rotateSpeed, sunAngle, sunHeight])
 
@@ -119,15 +117,15 @@ const Maps3D = () => {
     let loading = [WaterStatus.loading]
     loading[0] = GetWaterStatus(threeJsWaterFlowMachine)
 
-    if (threeJsWaterFlowMachine.service.state.value === 'Empty') {
+    if (threeJsWaterFlowMachine.value === 'Empty') {
       setIsSimulating(false)
     }
     // @ts-ignore
     setMachinesLoading(loading)
-    if (threeJsWaterFlowMachine.service.state.value === 'Loading') {
+    if (threeJsWaterFlowMachine.value === 'Loading') {
       setIsSimulating(true)
     }
-    if (threeJsWaterFlowMachine.service.state.value === 'Loaded') {
+    if (threeJsWaterFlowMachine.value === 'Loaded') {
       setIsSimulating(false)
     }
     // @ts-ignore
@@ -139,8 +137,8 @@ const Maps3D = () => {
     let mapUrl = soilStore.maps.soilMapUrls[selectedMap.menuName]?.url(mapVariantFromMenu(mapVariant))
     if (mapUrl === undefined) mapUrl = ""
 
-    threeJsUserSettingsMachine.service.send({
-      type: LoadingEvent.Update, payload: {
+    threeJsUserSettingsMachine.service.send(LoadingEvent.Update,{
+
         weight: threeJsStore.userSettings.Weight,
         resolution: threeJsStore.userSettings.Resolution,
         radius: threeJsStore.userSettings.Radius,
@@ -157,7 +155,6 @@ const Maps3D = () => {
         waterRadius: waterRadius,
         showBoundaries: showBoundaries,
         satelliteScaleUp: satelliteScaleUp,
-      }
     })
   }, [selectedMap, opacity, waterWeight, iterations, waterResolution, waterOpacity, showBoundaries, satelliteScaleUp, mapVariant])
 
@@ -166,16 +163,14 @@ const Maps3D = () => {
       return
     }
     threeJsSatelliteMachine.reset()
-    threeJsSatelliteMachine.service.send({
-      type: LoadingEvent.Load, payload: {
+    threeJsSatelliteMachine.service.send(LoadingEvent.Load, {
         block: block as string,
         bbox: boundaryStore.bbox as BoundingBox,
         showSatellite: showSatellite,
-      }
+
     })
     threeJsHeightMachine.reset()
-    threeJsHeightMachine.service.send({
-      type: LoadingEvent.Load, payload: {
+    threeJsHeightMachine.service.send(LoadingEvent.Load, {
         dealer: client.unwrapOr(null)?.dealer() as string,
         client: client.unwrapOr(null)?.client() as string,
         block: block as string,
@@ -184,15 +179,13 @@ const Maps3D = () => {
         resolution: threeJsStore.userSettings.Resolution,
         radius: threeJsStore.userSettings.Radius,
         samples: threeJsStore.userSettings.Samples,
-      }
     })
     threeJsWaterFlowMachine.reset()
   }, [pTime])
 
   const waterSim = () => {
     threeJsWaterFlowMachine.reset()
-    threeJsWaterFlowMachine.service.send({
-      type: LoadingEvent.Load, payload: {
+    threeJsWaterFlowMachine.service.send(LoadingEvent.Load,{
         dealer: client.unwrapOr(null)?.dealer() as string,
         client: client.unwrapOr(null)?.client() as string,
         block: block as string,
@@ -202,7 +195,6 @@ const Maps3D = () => {
         waterResolution: waterResolution,
         waterSamples: waterSamples,
         waterRadius: waterRadius,
-      }
     })
     let loading = [WaterStatus.loading]
     loading[0] = GetWaterStatus(threeJsWaterFlowMachine)
@@ -212,12 +204,10 @@ const Maps3D = () => {
   }
   useEffect(() => {
     threeJsSatelliteMachine.reset()
-    threeJsSatelliteMachine.service.send({
-      type: LoadingEvent.Load, payload: {
+    threeJsSatelliteMachine.service.send(LoadingEvent.Load,{
         block: block as string,
         bbox: boundaryStore.bbox as BoundingBox,
         showSatellite: showSatellite,
-      }
     })
   }, [showSatellite])
 
@@ -227,8 +217,7 @@ const Maps3D = () => {
     let mapUrl = soilStore.maps.soilMapUrls[selectedMap.menuName]?.url(mapVariantFromMenu(mapVariant))
     if (mapUrl === undefined) mapUrl = ""
 
-    threeJsUserSettingsMachine.service.send({
-      type: LoadingEvent.Update, payload: {
+    threeJsUserSettingsMachine.service.send(LoadingEvent.Update,{
         weight: threeJsStore.userSettings.Weight,
         resolution: threeJsStore.userSettings.Resolution,
         radius: threeJsStore.userSettings.Radius,
@@ -244,7 +233,6 @@ const Maps3D = () => {
         waterSamples: threeJsStore.userSettings.WaterSamples,
         waterRadius: threeJsStore.userSettings.WaterRadius,
         showBoundaries: showBoundaries,
-      }
     })
   }, [satelliteTime, heightTime])
   useEffect(() => {

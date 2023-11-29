@@ -3,10 +3,11 @@ import {SelectedPoint} from "../model";
 // @ts-ignore
 import {just} from "true-myth/maybe";
 import {getColorForSoilSample, latLngToPoint} from "../transform";
-import {soilUIStore} from "../store";
-import {soilStore} from "../../../lib/stores/soil/store";
-import {useLoadMachineStateWithUpdate} from "../../../core/machine";
-import {statsUISharedStateMachine, uiSharedState} from "../../stats/store";
+import {soilUIDataMachine, soilUIStore, soilUIToolbarMachine} from "../store";
+import {soilMachine, soilStore} from "../../../lib/stores/soil/store";
+import {useLoadMachinesState, useLoadMachineStateWithUpdate} from "../../../core/machine";
+import {statsStore, statsUISharedStateMachine} from "../../stats/store";
+import {metaClientMachine, metaMachine} from "../../../lib/stores/meta/store.ts";
 
 
 const Header = ({header, highlight, shrinkTable}: {header:string, key:string, highlight: boolean, shrinkTable: boolean}) => {
@@ -22,16 +23,18 @@ const Header = ({header, highlight, shrinkTable}: {header:string, key:string, hi
 }
 
 const SoilTable = () => {
+  const tm = useLoadMachinesState([soilMachine,metaClientMachine, soilMachine, metaMachine, soilUIDataMachine, soilUIToolbarMachine])
   const [_,update] = useLoadMachineStateWithUpdate(statsUISharedStateMachine)
   const csv = soilUIStore.soilDataState.shrunkHorizonData
   const latlngs = soilUIStore.soilDataState.selectedHorizonDataPoints
   const sampleIds = soilStore.data.soilSampleIds
   const shrinkTable = soilUIStore.toolbarState.shrinkTable
-  const [selectedPoint, setSelectedPoint] = [uiSharedState.soilUISelectedPointAtom, update]
+  const [selectedPoint, setSelectedPoint] = [statsStore.uiSharedState.soilUISelectedPointAtom, update]
 
+  console.log(tm, csv, latlngs)
 
   return (
-    <div className={classNames("relative bg-gray-100", shrinkTable? 'text-xs': '')}>
+    <div key={tm} className={classNames("relative bg-gray-100", shrinkTable? 'text-xs': '')}>
       <div className="flex flex-col">
         <div className="-my-2 -mx-4 sm:-mx-6 lg:-mx-8">
           <div className="inline-block min-w-full py-2 align-middle md:px-6 lg:px-8">

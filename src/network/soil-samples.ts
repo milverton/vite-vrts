@@ -1,4 +1,4 @@
-import {LoadingEvent, LoadingMachine, LoadingState} from "../core/machine";
+import {LoadingEvent, LoadingMachine} from "../core/machine";
 import {logWarning} from "../lib/stores/logging";
 import {Meta} from "../core/meta";
 import {emptyCsv} from "../lib/csv";
@@ -11,25 +11,25 @@ export let networkSoilSamplesStore = {
 export const networkSoilSamplesMachine = new LoadingMachine('Network Soil Samples Machine');
 networkSoilSamplesMachine.observer.subscribe({
   next: (state) => {
-    switch (state.value) {
-      case LoadingState.Empty:
+    switch (state.type) {
+      case LoadingEvent.Reset:
         // Reset the store
         networkSoilSamplesStore = {
           data: {},
           error: {}
         };
         break;
-      case LoadingState.Loading:
+      case LoadingEvent.Load:
 
-        let client = state.event.payload;
+        let client = state.payload;
         if (!client.isJust) {
-          networkSoilSamplesMachine.service.send({ type: LoadingEvent.Failure })
+          networkSoilSamplesMachine.fail("No client")
           return
         }
         client = client.value;
         const metas = client.getCleanSoilData()
         if (!metas || metas.length == 0) {
-          networkSoilSamplesMachine.service.send({ type: LoadingEvent.Failure });
+          networkSoilSamplesMachine.fail("No soil data");
           return;
         }
         let promises = metas.map((meta:Meta) => {
@@ -63,23 +63,24 @@ networkSoilSamplesMachine.observer.subscribe({
           .catch(error => {
             console.error('There has been a problem with your fetch operation:', error);
             networkSoilSamplesStore.error = error.message;
-            networkSoilSamplesMachine.service.send({ type: LoadingEvent.Failure });
+            networkSoilSamplesMachine.fail(error.message);
           });
         })
          Promise.all(promises).then((values) => {
            return {metas, csvs: values.reduce((acc, cur) => ({...acc, ...cur}), {})};
         }).then(data => {
            networkSoilSamplesStore.data = data;
-           networkSoilSamplesMachine.service.send({ type: LoadingEvent.Success });
+           networkSoilSamplesMachine.success();
          })
         break;
+      case LoadingEvent.Success:
+        break
+      case LoadingEvent.Failure:
+        break
+      default:
+        networkSoilSamplesMachine.fail(`Unknown event: ${state.type}, state: ${state.value}`);
+        break
     }
 
-    // switch (state.value) {
-    //
-    //   case LoadingEvent.Failure:
-    //     logFailure('Network Meta Machine', "Could not load metadata");
-    //     break;
-    // }
   }
 });

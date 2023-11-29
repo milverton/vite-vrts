@@ -29,15 +29,15 @@ export const InterpolatedMapLayer = ({fn, toggle}: { fn: MapLayerSelection, togg
   }
 
   useEffect(() => {
-    mapStoreInputsMachine.service.send({type: LoadingEvent.Update, payload: {interpolatedMapOpacity: opacity}})
+    mapStoreInputsMachine.service.send(LoadingEvent.Update, {interpolatedMapOpacity: opacity})
   }, [opacity])
 
   useEffect(() => {
-    mapStoreInputsMachine.service.send({type: LoadingEvent.Update, payload: {mapGrayScale: grayscale}})
+    mapStoreInputsMachine.service.send(LoadingEvent.Update, {mapGrayScale: grayscale})
   }, [grayscale])
 
   useEffect(() => {
-    mapStoreInputsMachine.service.send({type: LoadingEvent.Update, payload: {interpolatedMapUrl: soilStore.maps.soilMapUrls[map.menuName]}})
+    mapStoreInputsMachine.service.send(LoadingEvent.Update, {interpolatedMapUrl: soilStore.maps.soilMapUrls[map.menuName]})
   }, [map])
 
   return (

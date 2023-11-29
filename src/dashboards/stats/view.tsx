@@ -1,9 +1,10 @@
 import {useEffect, useState} from "react"
 import {
+  statsDataMachine,
   statsRegressionMachine,
   statsRegressionOutliersMachine,
   statsStore,
-  statsUISharedStateMachine, uiSharedState
+  statsUISharedStateMachine
 } from "./store";
 import {fusionMachine, fusionStore} from "../../lib/stores/fusion/store";
 
@@ -476,6 +477,7 @@ export const extractCoordinatesForCsvType = (csv: ICsv, csvType: CsvType): Ok<nu
   }
 }
 
+// @ts-ignore
 const FusionMap = () => {
   useLoadMachinesState([fusionMachine])
   const coordinates = extractCoordinatesForCsvType(fusionStore.fusionData.csv, fusionStore.fusionData.type).unwrapOr([])
@@ -599,7 +601,7 @@ const FusionMap = () => {
 //     fusionStore.fusionData.csv = csv
 //     fusionStore.fusionData.type = CsvType.SoilFusion
 //     fusionMachine.service.send({type: LoadingEvent.Update, payload: null})
-//     fusionMachine.service.send(LoadingEvent.Success)
+//     fusionMachine.resolve(LoadingEvent.Success)
 //   }
 //
 //   useEffect(() => {
@@ -764,7 +766,9 @@ const FusionMap = () => {
 // }
 
 const StatsView = () => {
-  useLoadMachinesState([statsRegressionMachine, fusionMachine])
+  useLoadMachinesState([statsRegressionMachine, fusionMachine, statsDataMachine])
+
+  console.log("STATS VIEW", statsStore)
 
   const [_,setSelectedRow] = useLoadMachineStateWithUpdate(statsUISharedStateMachine)
   const statsResult = statsStore.regressionState.selectedResult
@@ -800,7 +804,7 @@ const StatsView = () => {
             predictions={statsPredictions}
             xName={statsResult?.xName}
             yName={statsResult?.yName}
-            selected={uiSharedState.statsUISelectedRowAtom}
+            selected={statsStore.uiSharedState.statsUISelectedRowAtom}
             className={'min-h-[20em] max-h-[500px] mt-8 mx-2 min-w-3/12 text-xs overflow-y-auto'}
             onClick={(row) => setSelectedRow(row)}
             onOutlierClicked={(c) => update(c)}
@@ -818,14 +822,14 @@ const StatsView = () => {
           showLabels={showLabels}
           showOutliers={showOutliers}
           showThresholds={showThresholds}
-          selectedRow={uiSharedState.statsUISelectedRowAtom}
+          selectedRow={statsStore.uiSharedState.statsUISelectedRowAtom}
           setSelectedRow={setSelectedRow}
           height={800}
           onMount={(_) => {}}
         />
       </div>
       {/*<ReportSelectionTable className={'mx-2 mt-8 p-4 border-t-solid border-t-2 border-gray-200'} title={'Regression Report Setup'}/>*/}
-      <FusionMap/>
+      {/*<FusionMap/>*/}
       {/*<FusionGenerator />*/}
     </div>
   )

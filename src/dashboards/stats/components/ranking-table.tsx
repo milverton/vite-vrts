@@ -58,7 +58,7 @@ const useUpdateOnRankSelectionHook = () => {
   const updateSelectedRegression = (regression:string) => {
     const menuEntry = StatsRegressionTypesMenu.find((x) => x.menuName?.toLowerCase() === regression.toLowerCase())
     if (menuEntry) {
-      statsUIForRegressionsMachine.service.send({type: LoadingEvent.Update, payload: {selectedRegression: menuEntry.menuType}})
+      statsUIForRegressionsMachine.service.send(LoadingEvent.Update, {selectedRegression: menuEntry.menuType})
     }
   }
   const onRankingClick = (xName: string, yName:string, regression:string) => {

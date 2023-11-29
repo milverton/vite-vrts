@@ -1,5 +1,5 @@
 
-import {LoadingEvent, LoadingMachine, LoadingState} from "../core/machine";
+import {LoadingEvent, LoadingMachine} from "../core/machine";
 import {prepareUpload, readFileHandler} from "./common";
 import {post} from "../core/network";
 import {UPLOAD_URL} from "../lib/stores/soil/model";
@@ -10,11 +10,11 @@ import {logWarning} from "../lib/stores/logging";
 export const networkSoilPointsUploadMachine = new LoadingMachine('Network Soil Points Upload Machine');
 networkSoilPointsUploadMachine.observer.subscribe({
   next: (state) => {
-    switch (state.value) {
-      case LoadingState.Empty:
+    switch (state.type) {
+      case LoadingEvent.Reset:
         break;
-      case LoadingState.Loading:
-        const {event, meta} = state.event.payload
+      case LoadingEvent.Load:
+        const {event, meta} = state.payload
         readFileHandler(event).then(({data, mime}) => {
           prepareUpload(mime, data, meta).then(({manifest, owner, payload}) => {
             post(`${UPLOAD_URL}/soil-points`, {
@@ -23,20 +23,27 @@ networkSoilPointsUploadMachine.observer.subscribe({
               payload,
             })
               .then((data) => {
-                networkSoilPointsUploadMachine.service.send(LoadingEvent.Success);
+                networkSoilPointsUploadMachine.success();
                 networkSoilPointsUploadMachine.reset()
                 updateMetaChannel(data)
               })
-              .catch((_) => {
-                networkSoilPointsUploadMachine.service.send(LoadingEvent.Failure);
+              .catch((e) => {
+                networkSoilPointsUploadMachine.fail(e.toString());
                 // logServerFailure(e, "f4dfa636")
               });
           })
         }).catch((e) => {
-          networkSoilPointsUploadMachine.service.send(LoadingEvent.Failure);
+          networkSoilPointsUploadMachine.fail(e.toString());
           logWarning("Importing Soil Points Failed", e)
         })
         break;
+      case LoadingEvent.Success:
+        break
+      case LoadingEvent.Failure:
+        break
+      default:
+        networkSoilPointsUploadMachine.fail(`Unknown event: ${state.type}, state: ${state.value}`);
+        break
     }
   }
 });

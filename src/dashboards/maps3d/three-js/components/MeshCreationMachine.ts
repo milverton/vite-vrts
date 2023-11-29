@@ -1,9 +1,10 @@
-import {LoadingEvent, LoadingMachine, LoadingState} from "../../../../core/machine";
+import {LoadingEvent, LoadingMachine} from "../../../../core/machine";
 import {boundaryStore} from "../../../../lib/stores/boundary/store";
 import {getStaticImage4X, getStaticImageFromBbox,} from "../../transform";
 import * as THREE from "three";
 import {logFailure} from "../../../../lib/stores/logging";
 import {BoundaryElevationData, convertBoundariesToLines} from "../transform";
+
 
 
 interface ThreeJsStoreState {
@@ -22,6 +23,7 @@ interface MaterialState {
   InterpolatedUrl: string,
   WaterFlowUrl: string,
 }
+
 const InitialMaterialState: MaterialState = {
   SatelliteEnabled: true,
   SatelliteTexture: null,
@@ -47,11 +49,13 @@ interface UserSettings {
   ShowBoundaries: boolean,
   SatelliteScaleUp: boolean,
 }
+
 interface ISceneSettings {
   autoRotateSpeed: number,
   sunAngle: number,
   sunHeight: number,
 }
+
 const SceneSettings: ISceneSettings = {
   autoRotateSpeed: 0.0,
   sunAngle: 0,
@@ -85,16 +89,17 @@ const InitialThreeJsStore: ThreeJsStoreState = {
   BaseHeight: 0,
   BoundaryElevationData: null,
 }
+
 interface InterpolationResult {
   values: [],
   x_column: any,
   y_column: any,
 }
+
 export interface BoundaryElevationDto {
   outer: [],
   inner: [][],
 }
-
 
 
 interface ReceivedData {
@@ -113,15 +118,16 @@ export let threeJsStore = {
 export const threeJsUserSettingsMachine = new LoadingMachine('ThreeJs User Settings Machine')
 threeJsUserSettingsMachine.observer.subscribe({
   next: (state) => {
-    switch (state.value) {
-      case LoadingState.Empty:
+    switch (state.type) {
+      case LoadingEvent.Reset:
         threeJsStore = {...threeJsStore, userSettings: InitialUserSettings}
         break
-      case LoadingState.Updating:
-        const payload = state.event.payload
+      case LoadingEvent.Update:
+        const payload = state.payload
 
-        threeJsStore = {...threeJsStore, userSettings: {
-          ...threeJsStore.userSettings,
+        threeJsStore = {
+          ...threeJsStore, userSettings: {
+            ...threeJsStore.userSettings,
             Weight: payload.weight,
             Resolution: payload.resolution,
             Samples: payload.samples,
@@ -140,7 +146,7 @@ threeJsUserSettingsMachine.observer.subscribe({
             SatelliteScaleUp: payload.satelliteScaleUp,
           }
         }
-        threeJsUserSettingsMachine.service.send(LoadingEvent.Success)
+        threeJsUserSettingsMachine.success()
         break
     }
   }
@@ -149,15 +155,29 @@ threeJsUserSettingsMachine.observer.subscribe({
 export const threeJsSceneSettingsMachine = new LoadingMachine('ThreeJs Camera Settings Machine')
 threeJsSceneSettingsMachine.observer.subscribe({
   next: (state) => {
-    switch (state.value) {
-      case LoadingState.Empty:
+    switch (state.type) {
+      case LoadingEvent.Reset:
         threeJsStore = {...threeJsStore, sceneSettings: SceneSettings}
         break
-      case LoadingState.Updating:
-        const args = state.event.payload
-        threeJsStore = {...threeJsStore, sceneSettings: {...threeJsStore.sceneSettings, autoRotateSpeed: args.autoRotateSpeed, sunHeight: args.sunHeight, sunAngle: args.sunAngle}}
-        threeJsSceneSettingsMachine.service.send(LoadingEvent.Success)
+      case LoadingEvent.Update:
+        const args = state.payload
+        threeJsStore = {...threeJsStore,
+          sceneSettings: {
+            ...threeJsStore.sceneSettings,
+            autoRotateSpeed: args.autoRotateSpeed,
+            sunHeight: args.sunHeight,
+            sunAngle: args.sunAngle
+          }
+        }
+        threeJsSceneSettingsMachine.success()
         break;
+      case LoadingEvent.Success:
+        break;
+      case LoadingEvent.Failure:
+        break;
+      default:
+        threeJsSceneSettingsMachine.fail(`Unknown event: ${state.type}, state: ${state.value}`);
+        break
     }
   }
 })
@@ -171,18 +191,18 @@ threeJsSceneSettingsMachine.observer.subscribe({
 export const threeJsHeightMachine = new LoadingMachine('ThreeJs Machine')
 threeJsHeightMachine.observer.subscribe({
   next: (state) => {
-    switch (state.value) {
-      case LoadingState.Empty:
+    switch (state.type) {
+      case LoadingEvent.Reset:
         threeJsStore = {...threeJsStore, basicState: {...InitialThreeJsStore, BoundaryElevationData: null}}
         break
-      case LoadingState.Loading:
+      case LoadingEvent.Load:
         // Check if the bbox is ready for use
         if (!boundaryStore.bbox || boundaryStore.bbox.isUnset()) {
-          threeJsHeightMachine.service.send(LoadingEvent.Failure)
+          threeJsHeightMachine.failExpected('Bbox is not set')
           break
         }
 
-        let payload = state.event.payload
+        let payload = state.payload
 
         const data = {
           dealer: payload.dealer,
@@ -211,7 +231,7 @@ threeJsHeightMachine.observer.subscribe({
         }).then(response => {
           return response.json()
         }).then(response => {
-          console.log("------------- RESPONSE", response)
+          // console.log("------------- RESPONSE", response)
           const receivedData = (response as ReceivedData)
           const columnData = receivedData.interpolation_results.values
           const x_column = receivedData.interpolation_results.x_column
@@ -220,51 +240,63 @@ threeJsHeightMachine.observer.subscribe({
 
           let interpolatedArray = []
           let min = 100000000
-          for(let i = 0; i < columnData.length; i++) {
-            if(columnData[i] === -100) continue
-            if(columnData[i] < min) min = columnData[i]
+          for (let i = 0; i < columnData.length; i++) {
+            if (columnData[i] === -100) continue
+            if (columnData[i] < min) min = columnData[i]
           }
           interpolatedArray = columnData.map((value) => {
-            if(value === -100) return 0
-            if(value < min) return 0
+            if (value === -100) return 0
+            if (value < min) return 0
             return value - min
           })
-          console.log("BEFORE FORMAT: ", boundaries)
+          // console.log("BEFORE FORMAT: ", boundaries)
           let boundaryData = convertBoundariesToLines(boundaryStore.bbox, boundaryStore.boundary, boundaries, min)
-          console.log("FORMATTED BOUNDARIES INTO LINES",boundaryData.values)
+          // console.log("FORMATTED BOUNDARIES INTO LINES", boundaryData.values)
           let maxHeight = -100000
-          for(let i = 0; i < interpolatedArray.length; i++){
-            if(interpolatedArray[i] > maxHeight) maxHeight = interpolatedArray[i]
+          for (let i = 0; i < interpolatedArray.length; i++) {
+            if (interpolatedArray[i] > maxHeight) maxHeight = interpolatedArray[i]
           }
-          threeJsStore = {...threeJsStore,
-            basicState: {...threeJsStore.basicState,
+          threeJsStore = {
+            ...threeJsStore,
+            basicState: {
+              ...threeJsStore.basicState,
               InterpolatedData: interpolatedArray,
-              BaseHeight:maxHeight,
+              BaseHeight: maxHeight,
               XColumn: x_column,
               YColumn: y_column,
               BoundaryElevationData: boundaryData
-            }}
-          threeJsHeightMachine.service.send(LoadingEvent.Success)
+            }
+          }
+          threeJsHeightMachine.success()
 
         }).catch(error => {
           logFailure('3D Error', 'Failed to load elevation data, trying to load satellite elevation.')
           console.log(error)
           threeJsStore = {...threeJsStore, basicState: {...InitialThreeJsStore, BoundaryElevationData: null}}
-          threeJsHeightMachine.service.send(LoadingEvent.Failure)
+          threeJsHeightMachine.fail('Failed to load elevation data, trying to load satellite elevation.')
         }).catch(() => {
           logFailure('3D Error', 'There was an error loading elevation data for this client.')
-          threeJsStore = {...threeJsStore,
-            basicState: {...threeJsStore.basicState,
+          threeJsStore = {
+            ...threeJsStore,
+            basicState: {
+              ...threeJsStore.basicState,
               InterpolatedData: [],
-              BaseHeight:0,
+              BaseHeight: 0,
               XColumn: 0,
               YColumn: 0,
               BoundaryElevationData: null
-            }}
-          threeJsHeightMachine.service.send(LoadingEvent.Failure)
+            }
+          }
+          threeJsHeightMachine.fail('(Fallthrough) There was an error loading elevation data for this client.')
         })
-
         break;
+      case LoadingEvent.Success:
+        break;
+      case LoadingEvent.Failure:
+        break;
+      default:
+        threeJsHeightMachine.fail(`Unknown event: ${state.type}, state: ${state.value}`);
+        break
     }
   }
 })
@@ -291,54 +323,69 @@ threeJsHeightMachine.observer.subscribe({
 //                 YColumn: data.rows,
 //                 BoundaryElevationData: null
 //               }}
-//             threeJsHeightMachine.service.send(LoadingEvent.Success)
+//             threeJsHeightMachine.success()
 
 /** ThreeJsSatelliteMachine sets the satellite data in the threeJsStore.
  * It takes in a Block and a Bbox
  * @param {[string]} Block - The block of the current client
  * @param {[Bbox]} Bbox - The bounding box of the current client
  */
+
+
 export const threeJsSatelliteMachine = new LoadingMachine('ThreeJs Satellite Machine')
 threeJsSatelliteMachine.observer.subscribe({
   next: (state) => {
-    switch (state.value) {
-      case LoadingState.Empty:
+    switch (state.type) {
+      case LoadingEvent.Reset:
         threeJsStore = {...threeJsStore}
         break
-      case LoadingState.Loading:
+      case LoadingEvent.Load:
         // Check if the bbox is ready for use
         if (!boundaryStore.bbox || boundaryStore.bbox.isUnset()) {
-          threeJsSatelliteMachine.service.send(LoadingEvent.Failure)
+          threeJsSatelliteMachine.failExpected('Bbox is not set')
           break
         }
-        let args = state.event.payload
+        let args = state.payload
         const currentBlock = args.block
-        if(args.showSatellite === false) {
-          threeJsStore = {...threeJsStore,
+        if (args.showSatellite === false) {
+          threeJsStore = {
+            ...threeJsStore,
             basicState: {...threeJsStore.basicState, Block: currentBlock, Bbox: args.bbox},
             mapSettings: {...threeJsStore.mapSettings, SatelliteTexture: null}
           }
-          threeJsSatelliteMachine.service.send(LoadingEvent.Success)
+          threeJsSatelliteMachine.success()
           break
         }
 
         let scaleUp = threeJsStore.userSettings.SatelliteScaleUp
         let texturePromise = scaleUp ? getStaticImage4X(args.bbox) : getStaticImageFromBbox(args.bbox)
         texturePromise.then((res) => {
-          threeJsStore = {...threeJsStore,
+          threeJsStore = {
+            ...threeJsStore,
             basicState: {...threeJsStore.basicState, Block: currentBlock, Bbox: args.bbox},
             mapSettings: {...threeJsStore.mapSettings, SatelliteTexture: res}
           }
-          threeJsSatelliteMachine.service.send(LoadingEvent.Success)
+
+          threeJsSatelliteMachine.success()
         }).catch((err) => {
-          console.log(err)
           logFailure('3D Error', 'Failed to load satellite image.')
-          threeJsStore = {...threeJsStore,
+          threeJsStore = {
+            ...threeJsStore,
             basicState: {...threeJsStore.basicState},
             mapSettings: {...threeJsStore.mapSettings, SatelliteTexture: null}
           }
-          threeJsSatelliteMachine.service.send(LoadingEvent.Failure)
+
+          threeJsSatelliteMachine.fail(err)
+          // threeJsSatelliteMachine.fail('(Fallthrough) Failed to load satellite image.')
         })
+        break
+      case LoadingEvent.Success:
+        break;
+      case LoadingEvent.Failure:
+        break;
+      default:
+        threeJsSatelliteMachine.fail(`Unknown event: ${state.type}, state: ${state.value}`);
+        break
     }
   }
 })
@@ -347,17 +394,17 @@ threeJsSatelliteMachine.observer.subscribe({
 export const threeJsWaterFlowMachine = new LoadingMachine('ThreeJs Water Flow Machine')
 threeJsWaterFlowMachine.observer.subscribe({
   next: (state) => {
-    switch (state.value) {
-      case LoadingState.Empty:
-        threeJsStore = {...threeJsStore , mapSettings: {...threeJsStore.mapSettings, WaterFlowUrl: ''}}
+    switch (state.type) {
+      case LoadingEvent.Reset:
+        threeJsStore = {...threeJsStore, mapSettings: {...threeJsStore.mapSettings, WaterFlowUrl: ''}}
         break
-      case LoadingState.Loading:
+      case LoadingEvent.Load:
         // Check if the bbox is ready for use
         if (!boundaryStore.bbox || boundaryStore.bbox.isUnset()) {
-          threeJsWaterFlowMachine.service.send(LoadingEvent.Failure)
+          threeJsWaterFlowMachine.failExpected('Bbox is not set')
           break
         }
-        let payload = state.event.payload
+        let payload = state.payload
 
         const data = {
           dealer: payload.dealer,
@@ -381,7 +428,7 @@ threeJsWaterFlowMachine.observer.subscribe({
             'Content-Type': 'application/json',
           },
         }).then((res) => {
-          if(!res.ok) {
+          if (!res.ok) {
             throw new Error(res.statusText)
           }
           return res.arrayBuffer()
@@ -392,12 +439,15 @@ threeJsWaterFlowMachine.observer.subscribe({
           loader.crossOrigin = "Anonymous"
           let url = URL.createObjectURL(blob)
           threeJsStore = {...threeJsStore, mapSettings: {...threeJsStore.mapSettings, WaterFlowUrl: url}}
-          threeJsWaterFlowMachine.service.send(LoadingEvent.Success)
+          threeJsWaterFlowMachine.success()
         }).catch(() => {
           logFailure('3D Error', 'Failed to simulate water relief.')
-          threeJsWaterFlowMachine.service.send(LoadingEvent.Failure)
+          threeJsWaterFlowMachine.fail('Failed to simulate water relief.')
         })
         break;
+      default:
+        threeJsWaterFlowMachine.fail(`Unknown event: ${state.type}, state: ${state.value}`);
+        break
     }
   }
 })

@@ -250,7 +250,7 @@ export function convertBoundariesToLines(bbox:BoundingBox, boundaries: NewBounda
 // }
 export const MachinesHaveLoaded = (machines: LoadingMachine[]): boolean => {
   for(let i = 0; i < machines.length; i++){
-    if(machines[i].service.state.value !== 'Loaded'){
+    if(machines[i].value !== 'Loaded'){
       return false
     }
   }

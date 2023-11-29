@@ -11,7 +11,7 @@ export const CoordinatesLayer = ({fn, toggle}: { fn: MapLayerSelection, toggle: 
   const [pointSize, setPointSize] = useState(mapStore.mapLayerInputsState.coordinatesPointSize)
 
   useEffect(() => {
-    mapStoreInputsMachine.service.send({type: LoadingEvent.Update, payload: {coordinatesPointSize: pointSize}})
+    mapStoreInputsMachine.service.send(LoadingEvent.Update, {coordinatesPointSize: pointSize})
   }, [pointSize])
 
   return (

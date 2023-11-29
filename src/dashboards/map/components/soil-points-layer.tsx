@@ -9,7 +9,7 @@ export const SoilPointsLayer = ({fn, toggle}: { fn: MapLayerSelection, toggle: (
   const [pointSize, setPointSize] = useState(mapStore.mapLayerInputsState.soilPointSize)
 
   useEffect(() => {
-    mapStoreInputsMachine.service.send({type: LoadingEvent.Update, payload: {soilPointSize: pointSize}})
+    mapStoreInputsMachine.service.send(LoadingEvent.Update, {soilPointSize: pointSize})
   }, [pointSize])
 
   return (

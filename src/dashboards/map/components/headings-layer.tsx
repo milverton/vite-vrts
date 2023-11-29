@@ -12,11 +12,11 @@ export const HeadingsLayer = ({fn, toggle}: { fn: MapLayerSelection, toggle: (id
   const [pointPercentage, setPointPercentage] = useState(mapStore.mapLayerInputsState.headingsPercentageToShow)
 
   useEffect(() => {
-    mapStoreInputsMachine.service.send({type: LoadingEvent.Update, payload: {headingsPointSize: pointSize}})
+    mapStoreInputsMachine.service.send(LoadingEvent.Update, {headingsPointSize: pointSize})
   }, [pointSize])
 
   useEffect(() => {
-    mapStoreInputsMachine.service.send({type: LoadingEvent.Update, payload: {headingsPercentageToShow: pointPercentage}})
+    mapStoreInputsMachine.service.send(LoadingEvent.Update, {headingsPercentageToShow: pointPercentage})
   }, [pointPercentage])
 
   return (

@@ -3,7 +3,7 @@
 // Assuming you've imported necessary dependencies from the provided code
 
 // Initial state for the Ping store
-import {LoadingEvent, LoadingMachine, LoadingState} from "../core/machine";
+import {LoadingEvent, LoadingMachine} from "../core/machine";
 import {logFailure} from "../lib/stores/logging";
 
 let networkPingStore = {
@@ -14,15 +14,15 @@ let networkPingStore = {
 export const networkPingMachine = new LoadingMachine('Ping Machine');
 networkPingMachine.observer.subscribe({
   next: (state) => {
-    switch (state.value) {
-      case LoadingState.Empty:
+    switch (state.type) {
+      case LoadingEvent.Reset:
         // Reset the store
         networkPingStore = {
           data: {},
           error: {}
         };
         break;
-      case LoadingState.Updating:
+      case LoadingEvent.Update:
         // Fetch data from /api/v1/ping
         fetch('http://localhost:3001/api/v1/core/check')
           .then(response => {
@@ -34,17 +34,24 @@ networkPingMachine.observer.subscribe({
           })
           .then((data: any) => {
             networkPingStore.data = data;
-            networkPingMachine.service.send({ type: LoadingEvent.Success });
+            networkPingMachine.success();
           })
           .catch(error => {
             console.error('There has been a problem with your fetch operation:', error);
             networkPingStore.error = error.message;
-            networkPingMachine.service.send({ type: LoadingEvent.Failure });
+            networkPingMachine.fail(error.message);
           });
         break;
+      case LoadingEvent.Success:
+        break
+      case LoadingEvent.Failure:
+        break;
+      default:
+        networkPingMachine.fail(`Unknown event: ${state.type}, state: ${state.value}`);
+        break
     }
 
-    switch (state.value) {
+    switch (state.type) {
 
       case LoadingEvent.Failure:
         logFailure('Ping Machine', "Could not ping the server");

@@ -1,4 +1,4 @@
-import {LoadingEvent, LoadingMachine, LoadingState} from "../core/machine";
+import {LoadingEvent, LoadingMachine} from "../core/machine";
 import {prepareUpload, readFileHandler} from "./common";
 import {post} from "../core/network";
 import {UPLOAD_URL} from "../lib/stores/soil/model";
@@ -12,11 +12,11 @@ import {logWarning} from "../lib/stores/logging";
 export const networkEmGrUploadMachine = new LoadingMachine('Network EmGr Upload Machine');
 networkEmGrUploadMachine.observer.subscribe({
   next: (state) => {
-    switch (state.value) {
-      case LoadingState.Empty:
+    switch (state.type) {
+      case LoadingEvent.Reset:
         break;
-      case LoadingState.Loading:
-        const {event, meta} = state.event.payload
+      case LoadingEvent.Load:
+        const {event, meta} = state.payload
         readFileHandler(event).then(({data, mime}) => {
           prepareUpload(mime, data, meta).then(({manifest, owner, payload}) => {
             post(`${UPLOAD_URL}/emgr`, {
@@ -25,20 +25,27 @@ networkEmGrUploadMachine.observer.subscribe({
               payload,
             })
               .then((data) => {
-                networkEmGrUploadMachine.service.send(LoadingEvent.Success);
+                networkEmGrUploadMachine.success();
                 networkEmGrUploadMachine.reset()
                 updateMetaChannel(data)
               })
-              .catch(() => {
-                networkEmGrUploadMachine.service.send(LoadingEvent.Failure);
+              .catch((e) => {
+                networkEmGrUploadMachine.fail(`Error uploading emgr: ${e.toString()}`);
                 // logServerFailure(e, "f4dfa636")
               });
           })
         }).catch((e) => {
-          networkEmGrUploadMachine.service.send(LoadingEvent.Failure);
+          networkEmGrUploadMachine.fail(`Error uploading emgr: ${e.toString()}`);
           logWarning("Importing EmGr Failed", e)
         })
         break;
+      case LoadingEvent.Success:
+        break
+      case LoadingEvent.Failure:
+        break;
+      default:
+        networkEmGrUploadMachine.fail(`Unknown event: ${state.type}, state: ${state.value}`);
+        break
     }
   }
 });

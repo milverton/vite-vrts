@@ -22,7 +22,7 @@ export const WaterStatus = {
   empty: <BeakerIcon key="wstg" className="h-5 w-5 mt-[2px] text-gray-500" />
 }
 export const GetWaterStatus = (machine: LoadingMachine): any => {
-  let event = machine.service.state.value
+  let event = machine.value
 
   switch (event){
     case LoadingEvent.Failure:
@@ -36,8 +36,8 @@ export const GetWaterStatus = (machine: LoadingMachine): any => {
 }
 
 export const GetHeightStatus = (machine: LoadingMachine): any => {
-  console.log("MOOOOOOOOOOOOO", machine.service.state)
-  let event = machine.service.state.value
+
+  let event = machine.value
 
   switch (event){
     case LoadingEvent.Failure:
@@ -51,7 +51,7 @@ export const GetHeightStatus = (machine: LoadingMachine): any => {
 }
 
 export const GetSatelliteStatus = (machine: LoadingMachine): any => {
-  let event = machine.service.state.value
+  let event = machine.value
 
   switch (event){
     case LoadingEvent.Failure:

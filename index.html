@@ -1,13 +1,36 @@
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Vite + React + TS</title>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+  <meta charset='utf-8'>
+  <meta name='viewport' content='width=device-width,initial-scale=1'>
+
+  <title>Spectare</title>
+
+  <!--	<link rel='icon' type='image/png' href='/favicon.png'>-->
+  <link rel="stylesheet" href="/leaflet.css">
+<!--  <link rel='stylesheet' href='/global.css'>-->
+<!--  <link rel='stylesheet' href='/index.css'>-->
+<!--  <link rel='stylesheet' href='/extra.css'>-->
+  <script> var exports = {}; </script>
+  <style>
+    .loading {
+      background-color: black;
+      height: 100vh;
+      width: 100%;
+    }
+  </style>
+
+
+</head>
+
+<body class="h-full">
+<noscript>
+  You need to enable JavaScript to run this app.
+</noscript>
+  <div id="root" class="h-full">
+    <div class="loading">
+    </div>
+  </div>
+  <script type="module" src="/src/main.tsx"></script>
+</body>
 </html>

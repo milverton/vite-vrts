@@ -1,4 +1,4 @@
-import {LoadingEvent, LoadingMachine, LoadingState} from "../../core/machine";
+import {LoadingEvent, LoadingMachine} from "../../core/machine";
 import {
   MapLayerSelection,
   MapStoreState,
@@ -19,21 +19,22 @@ export const mapStoreLayersMachine = new LoadingMachine('Map Store Layers Machin
 
 mapStoreLayersMachine.observer.subscribe({
   next: (state) => {
-    switch (state.value) {
-      case LoadingState.Empty:
+    switch (state.type) {
+      case LoadingEvent.Reset:
         mapStore = {...mapStore, mapLayersState:resetMapLayers()}
         break
-      case LoadingState.Loading:
-        const layers = state.event.payload as MapLayerSelection[]
+      case LoadingEvent.Load:
+        const layers = state.payload as MapLayerSelection[]
         if (layers.length === 0) {
           logFailure("Error creating map state", "No active layers")
-          mapStoreLayersMachine.service.send(LoadingEvent.Failure)
+          mapStoreLayersMachine.fail("No active layers")
           return
         }
         mapStore = {...mapStore, mapLayersState: {layers}}
-        mapStoreLayersMachine.service.send(LoadingEvent.Success)
+        mapStoreLayersMachine.success()
         break
       default:
+        mapStoreLayersMachine.fail(`Unknown event: ${state.type}, state: ${state.value}`);
         break
     }
   }
@@ -43,37 +44,19 @@ export const mapStoreDrawState2DMachine = new LoadingMachine('Map Store Draw Sta
 
 mapStoreDrawState2DMachine.observer.subscribe({
   next: (state) => {
-    switch (state.value) {
-      case LoadingState.Empty:
+    switch (state.type) {
+      case LoadingEvent.Reset:
         mapStore = {...mapStore,
           mapDrawFunctions2DState: resetMapDrawFunctions2D(),
           mapDrawFunctions3DState: resetMapDrawFunctions3D(),
         }
         break
-      case LoadingState.Loading:
-        const {args} = state.event.payload
-        // if (is3D) {
-        //   const functions = mapLayersTo3DDrawFunctions(args)
-        //   if (functions.isErr) {
-        //     logFailure("Error creating map draw functions", functions.error)
-        //     mapStoreDrawState2DMachine.service.send(LoadingEvent.Failure)
-        //     return
-        //   }
-        //   mapStore = {
-        //     ...mapStore,
-        //     mapDrawFunctions3DState: {
-        //       drawFunctions3D: functions.unwrapOr({...resetMapDrawFunctions3D().drawFunctions3D}),
-        //       drawFunctions3DArgs: args,
-        //     }
-        //   }
-        //   mapStoreDrawState2DMachine.service.send(LoadingEvent.Success)
-        //   return
-        // }
-        // 2D
+      case LoadingEvent.Load:
+        const {args} = state.payload
         const functions = mapLayersTo2DDrawFunctions(args)
         if (functions.isErr) {
           logFailure("Error creating map draw functions", functions.error)
-          mapStoreDrawState2DMachine.service.send(LoadingEvent.Failure)
+          mapStoreDrawState2DMachine.fail(functions.error)
           return
         }
         mapStore = {
@@ -84,7 +67,10 @@ mapStoreDrawState2DMachine.observer.subscribe({
           }
         }
 
-        mapStoreDrawState2DMachine.service.send(LoadingEvent.Success)
+        mapStoreDrawState2DMachine.success()
+        break
+      default:
+        mapStoreDrawState2DMachine.fail(`Unknown event: ${state.type}, state: ${state.value}`);
         break
     }
   }
@@ -94,24 +80,27 @@ export const mapStoreInputsMachine = new LoadingMachine('Map Store Inputs Machin
 
 mapStoreInputsMachine.observer.subscribe({
   next: (state) => {
-    switch (state.value) {
-      case LoadingState.Empty:
+    switch (state.type) {
+      case LoadingEvent.Reset:
         mapStore = {...mapStore, mapLayerInputsState: resetMapLayerInputs()}
         break
-      case LoadingState.Updating:
+      case LoadingEvent.Update:
         const validProperties = Object.keys(resetMapLayerInputs())
-        const properties = state.event.payload as {[key: string]: any}
+        const properties = state.payload as {[key: string]: any}
         const validPropertiesInPayload = Object.keys(properties).filter((key) => validProperties.includes(key))
         if (validPropertiesInPayload.length === 0) {
           logFailure("Error creating map inputs", "No valid properties in payload")
-          mapStoreInputsMachine.service.send(LoadingEvent.Failure)
+          mapStoreInputsMachine.fail("No valid properties in payload")
           return
         }
         const newInputs = validPropertiesInPayload.reduce((acc, key) => {
           return {...acc, [key]: properties[key]}
         }, {})
         mapStore = {...mapStore, mapLayerInputsState: {...mapStore.mapLayerInputsState, ...newInputs}}
-        mapStoreInputsMachine.service.send(LoadingEvent.Success)
+        mapStoreInputsMachine.success()
+        break
+      default:
+        mapStoreInputsMachine.fail(`Unknown event: ${state.type}, state: ${state.value}`);
         break
     }
   }

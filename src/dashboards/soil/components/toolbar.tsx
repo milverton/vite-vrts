@@ -35,7 +35,7 @@ const SoilMapSelector = () => {
   const [_,update] = useLoadMachineStateWithUpdate(soilUIToolbarMachine)
   const menu = soilUIStore.toolbarState.mapMenu
 
-  return <StringSelectorControl label={'Map'} menu={menu} selected={soilUIStore.toolbarState.selectedMapMenuEntry} setSelected={(e) => update({selectedMap: e.menuType, selectedMapMenuEntry: e, mapFit: soilUIStore.toolbarState.mapFit+1})}/>
+  return <StringSelectorControl label={'Map'} menu={menu} selected={soilUIStore.toolbarState.selectedMapMenuEntry} setSelected={(e) => update({selectedMap: e.menuType, selectedMapMenuEntry: e})}/>
 }
 const ShrinkTableToggle = () => {
   const [_,update] = useLoadMachineStateWithUpdate(soilUIToolbarMachine)
@@ -89,7 +89,7 @@ const SelectedPointColorSelectorControl = () => {
 const SoilToolbar = ({id}: {id:string}) => {
   const tm = useLoadMachineState(soilUIToolbarMachine)
   return (
-    <div key={id + tm} className="flex flex-col relative text-xs justify-start sticky top-16 z-40">
+    <div key={id + tm} className="flex flex-col text-xs justify-start sticky top-16 z-10">
       <div className="flex flex-row w-full">
         <div className="bg-blue-100 flex flex-row p-2 border-r-4 border-gray-100 ">
           <MapSizeSelector/>

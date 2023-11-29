@@ -3,7 +3,7 @@ import {soilUIDataMachine, soilUIStore, soilUIToolbarMachine,} from "../soil/sto
 import MapBox from "../soil/components/mapbox";
 import {DefaultMapBoxSetup, MapSize, MapVariant} from "../soil/model";
 import {StringSelectorControl} from "../soil/components/controls";
-import {metaClientMachine, metaStore} from "../../lib/stores/meta/store";
+import {metaClientMachine, metaMachine, metaStore} from "../../lib/stores/meta/store";
 import {classNames, MenuEntry} from "../../lib/common";
 import {useLoadMachinesState, useLoadMachineState, useLoadMachineStateWithUpdate} from "../../core/machine";
 import {boundaryMachine} from "../../lib/stores/boundary/machines";
@@ -136,8 +136,8 @@ const formatBinningParams = (type: string, params: { bin_count: any; interval_in
 
 
 const HomeMap = () => {
-  const tm = useLoadMachinesState([boundaryMachine, metaClientMachine, soilMachine])
-  useLoadMachineState(soilUIDataMachine)
+  const bm = useLoadMachineState(boundaryMachine)
+  const tm = useLoadMachinesState([metaClientMachine, soilMachine, metaMachine, soilUIDataMachine])
 
   const [_, update] = useLoadMachineStateWithUpdate(soilUIToolbarMachine)
 
@@ -163,7 +163,7 @@ const HomeMap = () => {
 
   useEffect(() => {
     update({mapFit: soilUIStore.toolbarState.mapFit+1})
-  }, [])
+  }, [bm])
 
  //
   const meta = soilStore.maps.soilMapMetas[map.menuName]
@@ -190,7 +190,7 @@ const HomeMap = () => {
     }
   }, [meta]);
 
-  console.log(meta);
+
   return (
 
       <div className="w-full flex-col h-full flex items-center justify-start">
@@ -267,7 +267,8 @@ const HomeMap = () => {
         </div>
         <div className="flex flex-col w-full h-full bg-gray-50 items-center">
             <MapBox
-              key={tm}
+              key={bm}
+              updateNumber={tm}
               className="w-full h-full z-0"
               mapBoxSetup={DefaultMapBoxSetup}
               mapSize={MapSize[2]}

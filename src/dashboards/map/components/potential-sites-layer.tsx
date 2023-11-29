@@ -14,11 +14,11 @@ export const PotentialSitesLayer = ({fn, toggle}: { fn: MapLayerSelection, toggl
   const [pointSize, setPointSize] = useState(mapStore.mapLayerInputsState.potentialSitesPointSize)
 
   useEffect(() => {
-    mapStoreInputsMachine.service.send({type: LoadingEvent.Update, payload: {siteFilterDiff: filterDifference, siteFilterMin: filterMinimum}})
+    mapStoreInputsMachine.service.send(LoadingEvent.Update, {siteFilterDiff: filterDifference, siteFilterMin: filterMinimum})
   }, [filterDifference, filterMinimum])
 
   useEffect(() => {
-    mapStoreInputsMachine.service.send({type: LoadingEvent.Update, payload: {potentialSitesPointSize: pointSize}})
+    mapStoreInputsMachine.service.send(LoadingEvent.Update, {potentialSitesPointSize: pointSize})
   }, [pointSize])
 
 

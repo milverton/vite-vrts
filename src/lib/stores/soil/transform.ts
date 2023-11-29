@@ -59,7 +59,7 @@ export const loadSoilMapUrls = (store: SoilState, _client: DBMetaGroup): Promise
         bbox_gps: [gps.min_x, gps.min_y, gps.max_x, gps.max_y],
         bbox_prj: [prj.min_x, prj.min_y, prj.max_x, prj.max_y]
       }
-      console.log(data)
+      // console.log(data)
       acc[key] = data
       return acc
     }, {})

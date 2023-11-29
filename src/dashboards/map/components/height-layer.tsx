@@ -46,8 +46,7 @@ export const HeightLayer = (props: { simpleMode: any; }) => {
       }
     }
 
-    threeJsUserSettingsMachine.service.send({
-      type: LoadingEvent.Update, payload: {
+    threeJsUserSettingsMachine.service.send(LoadingEvent.Update, {
         resolution: meshResolution,
         weight: weight,
         radius: radius,
@@ -62,7 +61,7 @@ export const HeightLayer = (props: { simpleMode: any; }) => {
         waterOpacity: threeJsStore.userSettings.WaterOpacity,
         showBoundaries: threeJsStore.userSettings.ShowBoundaries,
         satelliteScaleUp: threeJsStore.userSettings.SatelliteScaleUp,
-      }
+
     })
   }, [meshResolution, weight, samples, radius, scalePercentage])
 
@@ -71,25 +70,24 @@ export const HeightLayer = (props: { simpleMode: any; }) => {
     loading[0] = GetHeightStatus(threeJsHeightMachine)
     loading[1] = GetSatelliteStatus(threeJsSatelliteMachine)
     setMachinesLoading(loading)
-    if(threeJsHeightMachine.service.state.value === LoadingState.Loading) {
+    if(threeJsHeightMachine.service.value === LoadingState.Loading) {
       setIsLoading(true)
     }
-    if(threeJsSatelliteMachine.service.state.value === LoadingState.Loading) {
+    if(threeJsSatelliteMachine.service.value === LoadingState.Loading) {
       setIsLoading(true)
     }
 
-    if (threeJsHeightMachine.service.state.value === LoadingState.Loaded && threeJsSatelliteMachine.service.state.value === LoadingState.Loaded) {
+    if (threeJsHeightMachine.service.value === LoadingState.Loaded && threeJsSatelliteMachine.service.value === LoadingState.Loaded) {
       return setIsLoading(false)
     }
-    if(threeJsHeightMachine.service.state.value === LoadingState.Empty || threeJsSatelliteMachine.service.state.value === LoadingState.Empty) {
+    if(threeJsHeightMachine.service.value === LoadingState.Empty || threeJsSatelliteMachine.service.value === LoadingState.Empty) {
       return setIsLoading(false)
     }
   }, [satTime, dataTime])
 
   const heightSatellite = () => {
     threeJsHeightMachine.reset()
-    threeJsHeightMachine.service.send({
-      type: LoadingEvent.Load, payload: {
+    threeJsHeightMachine.service.send(LoadingEvent.Load,{
         dealer: client.unwrapOr(null)?.dealer() as string,
         client: client.unwrapOr(null)?.client() as string,
         block: block as string,
@@ -98,15 +96,12 @@ export const HeightLayer = (props: { simpleMode: any; }) => {
         resolution: threeJsStore.userSettings.Resolution,
         radius: threeJsStore.userSettings.Radius,
         samples: threeJsStore.userSettings.Samples,
-      }
     })
     threeJsSatelliteMachine.reset()
-    threeJsSatelliteMachine.service.send({
-      type: LoadingEvent.Load, payload: {
+    threeJsSatelliteMachine.service.send(LoadingEvent.Load,{
         block: block as string,
         bbox: boundaryStore.bbox as BoundingBox,
         showSatellite: threeJsStore.userSettings.ShowSatellite,
-      }
     })
   }
 

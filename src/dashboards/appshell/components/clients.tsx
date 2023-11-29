@@ -15,7 +15,7 @@ export const Clients = ({className}: { className: string }) => {
 
   const setSelectedClient = (client: Maybe<DBMetaGroup>, boundary: Meta) => {
     metaClientMachine.reset()
-    metaClientMachine.service.send({type: LoadingEvent.Update, payload: {client, boundary}})
+    metaClientMachine.service.send(LoadingEvent.Update, {client, boundary})
   }
 
   const [dealer, setDealer] = useState({menuName: 'VRTS', menuType: 'vrts'})

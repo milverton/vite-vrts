@@ -1,4 +1,4 @@
-import {LoadingEvent, LoadingMachine, LoadingState} from "../core/machine";
+import {LoadingEvent, LoadingMachine} from "../core/machine";
 import {DBMetaGroup} from "../lib/db";
 // @ts-ignore
 import {Maybe} from "true-myth/maybe";
@@ -11,24 +11,24 @@ export let networkSoilPointsStore = {
 export const networkSoilPointsMachine = new LoadingMachine('Network Soil Points Machine');
 networkSoilPointsMachine.observer.subscribe({
   next: (state) => {
-    switch (state.value) {
-      case LoadingState.Empty:
+    switch (state.type) {
+      case LoadingEvent.Reset:
         // Reset the store
         networkSoilPointsStore = {
           data: {},
           error: {}
         };
         break;
-      case LoadingState.Loading:
-        let clientMaybe: Maybe<DBMetaGroup> = state.event.payload as Maybe<DBMetaGroup>;
+      case LoadingEvent.Load:
+        let clientMaybe: Maybe<DBMetaGroup> = state.payload as Maybe<DBMetaGroup>;
         if (!clientMaybe.isJust) {
-          networkSoilPointsMachine.service.send({ type: LoadingEvent.Failure })
+          networkSoilPointsMachine.fail(`Could not load client`)
           return
         }
         let client = clientMaybe.value;
         const meta = client.getCleanSoilPoints();
         if (!meta) {
-          networkSoilPointsMachine.service.send({ type: LoadingEvent.Failure })
+          networkSoilPointsMachine.fail(`Could not load soil points`)
           return
         }
 
@@ -46,17 +46,24 @@ networkSoilPointsMachine.observer.subscribe({
           })
           .then(data => {
             networkSoilPointsStore.data = {csv: data, meta};
-            networkSoilPointsMachine.service.send({ type: LoadingEvent.Success });
+            networkSoilPointsMachine.success();
           })
           .catch(error => {
             console.error('There has been a problem with your fetch operation:', error);
             networkSoilPointsStore.error = error.message;
-            networkSoilPointsMachine.service.send({ type: LoadingEvent.Failure });
+            networkSoilPointsMachine.fail(error.message);
           });
         break;
+      case LoadingEvent.Success:
+        break
+      case LoadingEvent.Failure:
+        break
+      default:
+        networkSoilPointsMachine.fail(`Unknown event: ${state.type}, state: ${state.value}`);
+        break
     }
 
-    // switch (state.value) {
+    // switch (state.type) {
     //
     //   case LoadingEvent.Failure:
     //     logFailure('Network Meta Machine', "Could not load metadata");

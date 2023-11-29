@@ -119,6 +119,6 @@ export const updateMetaChannel = (response: {updated: Meta[], new: Meta[], delet
 
   }
 
-  metaMachine.service.send({type: LoadingEvent.Update, payload: {metas}})
+  metaMachine.service.send(LoadingEvent.Update, {metas})
 
 }

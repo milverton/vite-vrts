@@ -1,6 +1,6 @@
 import {csvExclude, csvHasData, csvInclude, emptyCsv} from "../../lib/csv"
 import {
-  ReportItem,
+  ReportItem, resetSharedState,
   resetStats,
   resetStatsOutliers,
   resetStatsRegressionData,
@@ -22,7 +22,6 @@ import {
 import {soilMachine, soilStore} from "../../lib/stores/soil/store";
 import {
   createStatsOutlierKey,
-  getRegressionResultRanking,
   getSampleIds,
   statsBuildRegression,
   statsBuildXY,
@@ -33,15 +32,16 @@ import {
 } from "./transform";
 
 
-import {LoadingEvent, LoadingMachine, LoadingState} from "../../core/machine";
+import {LoadingEvent, LoadingMachine} from "../../core/machine";
 import {merge} from "rxjs";
-import {SelectedPoint, SoilHorizonsMenu} from "../soil/model";
+import {SoilHorizonsMenu} from "../soil/model";
 import {fusionMachine, fusionStore} from "../../lib/stores/fusion/store";
-import {logFailure, logWarning} from "../../lib/stores/logging";
+import {logWarning} from "../../lib/stores/logging";
 
 import {slugify} from "../../lib/common";
 // @ts-ignore
 import {Maybe, nothing} from "true-myth/maybe";
+import {isNumber} from "lodash";
 
 
 
@@ -76,13 +76,13 @@ const isDifferent = (prop: string, old: any, current: any) => {
 export const statsUIForRegressionsMachine = new LoadingMachine('Stats UI Regressions Machine')
 statsUIForRegressionsMachine.observer.subscribe({
   next: (state) => {
-    switch (state.value) {
-      case LoadingState.Empty:
+    switch (state.type) {
+      case LoadingEvent.Reset:
         statsStore = {...statsStore, uiRegressionState: resetStatsUIForRegression()}
         break
-      case LoadingState.Updating:
+      case LoadingEvent.Update:
         // payload should contain one or more properties from uiRegressionState
-        const payload = state.event.payload
+        const payload = state.payload
         // if we have the index for the selected regression, then we need to update the name
         if (payload.selectedRegression !== undefined) {
           payload.selectedRegressionName = StatsRegressionTypesMenu[payload.selectedRegression].menuName
@@ -90,7 +90,14 @@ statsUIForRegressionsMachine.observer.subscribe({
           payload.selectedRegressionName = 'NA'
         }
         statsStore = {...statsStore, uiRegressionState: {...statsStore.uiRegressionState, ...payload}}
-        statsUIForRegressionsMachine.service.send({type: LoadingEvent.Success})
+        statsUIForRegressionsMachine.success()
+        break
+      case LoadingEvent.Success:
+        break
+      case LoadingEvent.Failure:
+        break
+      default:
+        statsUIForRegressionsMachine.fail(`Unknown event: ${state.type}, state: ${state.value}`);
         break
     }
   }
@@ -104,17 +111,17 @@ statsUIForRegressionsMachine.observer.subscribe({
 export const statsUIForXYDataMachine = new LoadingMachine('Stats UI XY Data Machine')
 statsUIForXYDataMachine.observer.subscribe({
   next: (state) => {
-    switch (state.value) {
-      case LoadingState.Empty:
+    switch (state.type) {
+      case LoadingEvent.Reset:
         statsStore = {...statsStore, uiXYState: resetStatsUIForXY()}
         break
-      case LoadingState.Updating:
+      case LoadingEvent.Update:
         // payload should contain one or more properties from uiXYState
-        const payload = state.event.payload
+        const payload = state.payload
 
         if (payload.selectedHorizon !== undefined && soilStore.data.soilHorizonData[payload.selectedHorizon] === undefined) {
           logWarning('Missing horizon data', `No data for horizon ${SoilHorizonsMenu[payload.selectedHorizon].menuName}`)
-          statsUIForXYDataMachine.service.send(LoadingEvent.Failure)
+          statsUIForXYDataMachine.fail(`No data for horizon ${SoilHorizonsMenu[payload.selectedHorizon].menuName}`)
           return
         }
 
@@ -137,7 +144,14 @@ statsUIForXYDataMachine.observer.subscribe({
           payload.selectedHorizonName = SoilHorizonsMenu[payload.selectedHorizon].menuName
         }
         statsStore = {...statsStore, uiXYState: {...statsStore.uiXYState, ...payload}}
-        statsUIForXYDataMachine.service.send({type: LoadingEvent.Success})
+        statsUIForXYDataMachine.success()
+        break
+      case LoadingEvent.Success:
+        break
+      case LoadingEvent.Failure:
+        break
+      default:
+        statsUIForXYDataMachine.fail(`Unknown event: ${state.type}, state: ${state.value}`);
         break
     }
   }
@@ -154,7 +168,7 @@ statsUIForXYDataMachine.observer.subscribe({
 export const updateSelectedXYMenus = (xName: string, yName: string) => {
   const xIdx = statsStore.xyState.xData.head.findIndex((h) => h === xName)
   const yIdx = statsStore.xyState.yData.head.findIndex((h) => h === yName)
-  statsUIForXYDataMachine.service.send({type: LoadingEvent.Update, payload: {selectedXVar: xIdx, selectedYVar: yIdx}})
+  statsUIForXYDataMachine.service.send(LoadingEvent.Update, {selectedXVar: xIdx, selectedYVar: yIdx})
 }
 
 
@@ -166,15 +180,22 @@ export const updateSelectedXYMenus = (xName: string, yName: string) => {
 export const statsDataMachine = new LoadingMachine('Stats Data Machine')
 statsDataMachine.observer.subscribe({
   next: (state) => {
-    switch (state.value) {
-      case LoadingState.Empty:
+    switch (state.type) {
+      case LoadingEvent.Reset:
         statsStore = {...statsStore, xyState: resetStatsXYData()}
         break
-      case LoadingState.Updating:
+      case LoadingEvent.Update:
         // payload should contain one or more properties from xyState
-        const payload = state.event.payload
+        const payload = state.payload
         statsStore = {...statsStore, xyState: {...statsStore.xyState, ...payload}}
-        statsDataMachine.service.send({type: LoadingEvent.Success})
+        statsDataMachine.success()
+        break
+      case LoadingEvent.Success:
+        break
+      case LoadingEvent.Failure:
+        break
+      default:
+        statsDataMachine.fail(`Unknown event: ${state.type}, state: ${state.value}`);
         break
     }
   }
@@ -188,7 +209,7 @@ statsDataMachine.observer.subscribe({
 // listen for soil, fusion and stats ui updates
 merge(soilMachine.observer, fusionMachine.observer, statsUIForXYDataMachine.observer).subscribe({
   next: (state) => {
-    if (state.value === LoadingEvent.Success) {
+    if (state.type === LoadingEvent.Success) {
       // xData (fusion data) combines both EM and GR sensor data that is closest to where the soil sample was taken
       const xData = fusionStore.fusionData.csv
 
@@ -244,10 +265,13 @@ merge(soilMachine.observer, fusionMachine.observer, statsUIForXYDataMachine.obse
       // if the XY data was built successfully, then update the statsStore.xyState store
       if (xyResults.isOk) {
         payload = {...payload, xyResults: xyResults.value}
-        statsDataMachine.service.send({type: LoadingEvent.Update, payload})
+        statsDataMachine.service.send(LoadingEvent.Update, payload)
+        return
+      } else {
+        statsDataMachine.fail(`Failed to build XY data: ${xyResults.error}`)
         return
       }
-      statsDataMachine.service.send(LoadingEvent.Failure)
+      statsDataMachine.fail('(Fallthrough) Failed to build XY data')
 
     }
   }
@@ -260,14 +284,14 @@ merge(soilMachine.observer, fusionMachine.observer, statsUIForXYDataMachine.obse
 export const statsRegressionOutliersMachine = new LoadingMachine('Stats Regression Outliers Machine')
 statsRegressionOutliersMachine.observer.subscribe({
   next: (state) => {
-    switch (state.value) {
-      case LoadingState.Empty:
+    switch (state.type) {
+      case LoadingEvent.Reset:
         statsStore = {...statsStore, outliersState: resetStatsOutliers()}
         break
 
-      case LoadingState.Updating:
+      case LoadingEvent.Update:
         // payload contains the index of the outlier, the context is derived from the current state
-        const value = state.event.payload
+        const value = state.payload
 
         const regressionName = StatsRegressionTypesMenu[statsStore.uiRegressionState.selectedRegression].menuName.toLowerCase()
         const key = createStatsOutlierKey(statsStore.uiXYState.selectedHorizonName,regressionName, statsStore.xyState.xName, statsStore.xyState.yName)
@@ -283,7 +307,14 @@ statsRegressionOutliersMachine.observer.subscribe({
         const payload = {...statsStore.outliersState.outliers, [key]: rSet}
         // console.log("OUTLIERS PAYLOAD", payload)
         statsStore = {...statsStore, outliersState: {...statsStore.outliersState, outliers: payload}}
-        statsRegressionOutliersMachine.service.send({type: LoadingEvent.Success})
+        statsRegressionOutliersMachine.success()
+        break
+      case LoadingEvent.Success:
+        break
+      case LoadingEvent.Failure:
+        break
+      default:
+        statsRegressionOutliersMachine.fail(`Unknown event: ${state.type}, state: ${state.value}`);
         break
     }
   }
@@ -296,15 +327,22 @@ statsRegressionOutliersMachine.observer.subscribe({
 export const statsRegressionMachine = new LoadingMachine('Stats Regression Machine')
 statsRegressionMachine.observer.subscribe({
   next: (state) => {
-    switch (state.value) {
-      case LoadingState.Empty:
+    switch (state.type) {
+      case LoadingEvent.Reset:
         statsStore = {...statsStore, regressionState: resetStatsRegressionData(), outliersState: resetStatsOutliers()}
         break
 
-      case LoadingState.Updating:
-        const payload = state.event.payload
+      case LoadingEvent.Update:
+        const payload = state.payload
         statsStore = {...statsStore, regressionState: {...statsStore.regressionState, ...payload}}
-        statsRegressionMachine.service.send({type: LoadingEvent.Success})
+        statsRegressionMachine.success()
+        break
+      case LoadingEvent.Success:
+        break
+      case LoadingEvent.Failure:
+        break
+      default:
+        statsRegressionMachine.fail(`Unknown event: ${state.type}, state: ${state.value}`);
         break
     }
   }
@@ -317,7 +355,7 @@ statsRegressionMachine.observer.subscribe({
  */
 merge(statsUIForRegressionsMachine.observer, statsDataMachine.observer, statsRegressionOutliersMachine.observer).subscribe({
   next: (state) => {
-    if (state.value === LoadingEvent.Success) {
+    if (state.type === LoadingEvent.Success) {
       // get the regression name
       const selectedRegressionName = StatsRegressionTypesMenu[statsStore.uiRegressionState.selectedRegression].menuName.toLowerCase()
 
@@ -327,9 +365,8 @@ merge(statsUIForRegressionsMachine.observer, statsDataMachine.observer, statsReg
       const results = statsBuildRegression(statsStore.xyState.xyResults, statsStore.uiRegressionState.degree, statsStore.uiRegressionState.outlierThreshold, selectedRegressionName,  outliers)
       let payload = {}
       if (results.isErr) {
-        statsRegressionMachine.service.send(LoadingEvent.Failure)
-        // FIXME: alert user?
-        console.warn(results.error)
+        // console.warn(results.error)
+        statsRegressionMachine.fail(results.error)
         return
       }
 
@@ -368,20 +405,19 @@ merge(statsUIForRegressionsMachine.observer, statsDataMachine.observer, statsReg
         payload = {results: results.value, selectedResult, predictions}
         const ranking = statsSortRegressionResults(results.value)
         if (ranking.isErr) {
-          statsRegressionMachine.service.send(LoadingEvent.Failure)
-          console.warn(ranking.error)
+          statsRegressionMachine.fail(ranking.error)
           return
         }
         if (ranking.isOk) {
           payload = {...payload, ranking: ranking.value}
 
 
-          statsRegressionMachine.service.send({type: LoadingEvent.Update, payload})
+          statsRegressionMachine.service.send(LoadingEvent.Update, payload)
           return
         }
 
       }
-      statsRegressionMachine.service.send(LoadingEvent.Failure)
+      statsRegressionMachine.fail('(Fallthrough) Failed to build regression data')
     }
   }
 })
@@ -390,32 +426,34 @@ merge(statsUIForRegressionsMachine.observer, statsDataMachine.observer, statsReg
 // ------------------ User Interaction Section ----------------
 // connects chart and regression entries together
 
-export interface UISharedState {
-  statsUISelectedRowAtom: number
-  soilUISelectedPointAtom: Maybe<SelectedPoint>
-}
-export const resetSharedState = (): UISharedState => {
-  return {
-    statsUISelectedRowAtom: -1,
-    soilUISelectedPointAtom: nothing<SelectedPoint>()
-  }
-}
 
-
-
-export let uiSharedState = resetSharedState()
 export const statsUISharedStateMachine = new LoadingMachine('Stats UI Shared State Machine')
 statsUISharedStateMachine.observer.subscribe({
   next: (state) => {
-    switch (state.value) {
-      case LoadingState.Empty:
-        uiSharedState = resetSharedState()
+    switch (state.type) {
+      case LoadingEvent.Reset:
+        statsStore = {...statsStore, uiSharedState: resetSharedState()}
         break
-      case LoadingState.Updating:
-        const payload = state.event.payload
-        statsStore = {...uiSharedState, ...payload}
+      case LoadingEvent.Update:
+        const payload = state.payload
+        // FIXME Was a replace for two separate atoms, now we have one state machine, possibly need to add a type to the payload to differentiate
+        if (isNumber(payload)) {
+          statsStore = {...statsStore, uiSharedState: {...statsStore.uiSharedState, statsUISelectedRowAtom: payload}}
+        } else {
+          statsStore = {...statsStore, uiSharedState: {...statsStore.uiSharedState, soilUISelectedPointAtom: payload}}
+        }
+
+        statsUISharedStateMachine.success()
+        break
+      case LoadingEvent.Success:
+        break
+      case LoadingEvent.Failure:
+        break
+      default:
+        statsUISharedStateMachine.fail(`Unknown event: ${state.type}, state: ${state.value}`);
+        break
     }
-    statsUISharedStateMachine.service.send({type: LoadingEvent.Success})
+
   }
 });
 
@@ -424,12 +462,12 @@ export const statsReportLoadingMachine = new LoadingMachine('Stats Report Loadin
 statsReportLoadingMachine.observer.subscribe({
   next: (state) => {
 
-    switch (state.value) {
-      case LoadingState.Empty:
+    switch (state.type) {
+      case LoadingEvent.Reset:
         statsStore = {...statsStore, reportState: resetStatsReport()}
         break
-      case LoadingState.Loading:
-        const data = state.event.payload as StatsReportState
+      case LoadingEvent.Load:
+        const data = state.payload as StatsReportState
         // reportItems is keyed by horizon, 1, 2 and 3 with an array of report items
         const horizons = Object.keys(data.reportItems)
         // hasData is keyed by horizon, 1, 2 and 3 with a boolean value
@@ -466,92 +504,97 @@ statsReportLoadingMachine.observer.subscribe({
         statsStore = {...statsStore, reportState: {...data, slideReportItems}, outliersState: {outliers}}
         statsStore = {...statsStore, reportState: {...data, slideReportItems}}
         if (statsStore.uiXYState.longList !== data.isLongList) {
-          statsUIForXYDataMachine.service.send({type: LoadingEvent.Update, payload: {longList: data.isLongList}})
+          statsUIForXYDataMachine.service.send(LoadingEvent.Update, {longList: data.isLongList})
         }
 
-        // statsRegressionOutliersMachine.service.send({type: LoadingEvent.Success})
-        statsReportLoadingMachine.service.send({type: LoadingEvent.Success})
+        // statsRegressionOutliersMachine.success()
+        statsReportLoadingMachine.success()
+        break
+      default:
+        statsReportLoadingMachine.fail(`Unknown event: ${state.type}, state: ${state.value}`);
         break
     }
   }
 })
 
 
-/**
- * Stats Report Machine
- * This machine is responsible for updating the statsStore.reportState store.
- */
-export const statsReportUpdatingMachine = new LoadingMachine('Stats Report Updating Machine')
-statsReportUpdatingMachine.observer.subscribe({
-  next: (state) => {
-    switch (state.value) {
-      case LoadingState.Empty:
-        statsStore = {...statsStore, reportState: resetStatsReport()}
-        break
-
-      case LoadingState.Updating:
-        // payload contains the index of the reportItem (i.e. slide), the key and value to update
-        // {action: 'update|delete', key: string, value: any, idx: number}
-        const payload = state.event.payload
-
-        // get the items for the currently selected horizon and update the values
-        // @ts-ignore
-        let items = [...statsStore.reportState.reportItems[statsStore.uiXYState.selectedHorizon]]
-        for (let i = 0; i < payload.length; i++) {
-          const {action,idx, key, value} = payload[i]
-
-          if (action === 'delete') {
-            delete items[idx]
-            continue
-          }
-          if (action === 'add') {
-            items.splice(idx, 0, value)
-            continue
-          }
-          if (action === 'shift-up') {
-            const item = items[idx]
-            items.splice(idx, 1)
-            items.splice(idx - 1, 0, item)
-          }
-          if (action === 'shift-down') {
-            const item = items[idx]
-            items.splice(idx, 1)
-            items.splice(idx + 1, 0, item)
-          }
-          items[idx] = {...items[idx], [key]: value}
-        }
-
-        // remove any undefined items that delete may have left
-        items = items.filter((item) => item !== undefined)
-        // Update the sortKey for each item
-        for (let i = 0; i < items.length; i++) {
-          items[i].sortKey = `C-${i}`
-        }
-
-        // check if any of the items have data (used for the UI to inform the user if they have set slide/data for each horizon)
-        const hasData = items.some((item) => item.regression !== null)
-        const reportItems = {...statsStore.reportState.reportItems, [statsStore.uiXYState.selectedHorizon]: items}
-        const reportItemsWithData = {...statsStore.reportState.reportItemsWithData, [statsStore.uiXYState.selectedHorizon]: hasData}
-        statsStore = {...statsStore, reportState: {...statsStore.reportState, reportItems: reportItems, reportItemsWithData: reportItemsWithData, isLongList: statsStore.uiXYState.longList}}
-        // statsStore = {...statsStore, reportState: {...statsStore.reportState, reportItems: items}}
-        statsReportUpdatingMachine.service.send({type: LoadingEvent.Success})
-        break
-    }
-  }
-})
-
-
-
-statsReportUpdatingMachine.observer.subscribe({
-  next: (state) => {
-    if (state.value === LoadingEvent.Success) {
-      const reportState = statsStore.reportState
-      console.log("RESETTING STATS MACHINE A")
-      statsReportLoadingMachine.reset()
-      statsReportLoadingMachine.service.send({type: LoadingEvent.Load, payload: reportState})
-    }
-  }
-})
+// /**
+//  * Stats Report Machine
+//  * This machine is responsible for updating the statsStore.reportState store.
+//  */
+// export const statsReportUpdatingMachine = new LoadingMachine('Stats Report Updating Machine')
+// statsReportUpdatingMachine.observer.subscribe({
+//   next: (state) => {
+//     switch (state.type) {
+//       case LoadingEvent.Reset:
+//         statsStore = {...statsStore, reportState: resetStatsReport()}
+//         break
+//
+//       case LoadingEvent.Update:
+//         // payload contains the index of the reportItem (i.e. slide), the key and value to update
+//         // {action: 'update|delete', key: string, value: any, idx: number}
+//         const payload = state.payload
+//
+//         // get the items for the currently selected horizon and update the values
+//         // @ts-ignore
+//         let items = [...statsStore.reportState.reportItems[statsStore.uiXYState.selectedHorizon]]
+//         for (let i = 0; i < payload.length; i++) {
+//           const {action,idx, key, value} = payload[i]
+//
+//           if (action === 'delete') {
+//             delete items[idx]
+//             continue
+//           }
+//           if (action === 'add') {
+//             items.splice(idx, 0, value)
+//             continue
+//           }
+//           if (action === 'shift-up') {
+//             const item = items[idx]
+//             items.splice(idx, 1)
+//             items.splice(idx - 1, 0, item)
+//           }
+//           if (action === 'shift-down') {
+//             const item = items[idx]
+//             items.splice(idx, 1)
+//             items.splice(idx + 1, 0, item)
+//           }
+//           items[idx] = {...items[idx], [key]: value}
+//         }
+//
+//         // remove any undefined items that delete may have left
+//         items = items.filter((item) => item !== undefined)
+//         // Update the sortKey for each item
+//         for (let i = 0; i < items.length; i++) {
+//           items[i].sortKey = `C-${i}`
+//         }
+//
+//         // check if any of the items have data (used for the UI to inform the user if they have set slide/data for each horizon)
+//         const hasData = items.some((item) => item.regression !== null)
+//         const reportItems = {...statsStore.reportState.reportItems, [statsStore.uiXYState.selectedHorizon]: items}
+//         const reportItemsWithData = {...statsStore.reportState.reportItemsWithData, [statsStore.uiXYState.selectedHorizon]: hasData}
+//         statsStore = {...statsStore, reportState: {...statsStore.reportState, reportItems: reportItems, reportItemsWithData: reportItemsWithData, isLongList: statsStore.uiXYState.longList}}
+//         // statsStore = {...statsStore, reportState: {...statsStore.reportState, reportItems: items}}
+//         statsReportUpdatingMachine.success()
+//         break
+//       default:
+//         statsReportUpdatingMachine.fail(`Unknown event: ${state.type}, state: ${state.value}`);
+//         break
+//     }
+//   }
+// })
+//
+//
+//
+// statsReportUpdatingMachine.observer.subscribe({
+//   next: (state) => {
+//     if (state.type === LoadingEvent.Success) {
+//       const reportState = statsStore.reportState
+//       statsReportLoadingMachine.reset()
+//       statsReportLoadingMachine.service.send(LoadingEvent.Load, {reportState})
+//     }
+//   }
+// })
 
 // export const loadStatsReportFromDisk = () => {
 //   if (!metaStore.client.isJust) {
@@ -580,7 +623,7 @@ statsReportUpdatingMachine.observer.subscribe({
 //     })
 //     .catch((err) => {
 //       logFailure('rawStatsReportMeta',err)
-//       statsReportLoadingMachine.service.send(LoadingEvent.Failure)
+//       statsReportLoadingMachine.resolve(LoadingEvent.Failure)
 //     })
 // }
 
@@ -636,65 +679,65 @@ const buildReportItemsForSlides = (reportItems: {[k:string]: ReportItem[]}):Slid
 //       const reportItems = {...statsStore.reportState.reportItems, [statsStore.uiXYState.selectedHorizon]: newItems}
 //       const slideReportItems = buildReportItemsForSlides(reportItems)
 //       statsStore = {...statsStore, reportState: {...statsStore.reportState, reportItems: reportItems, slideReportItems}}
-//       statsReportUpdatingMachine.service.send({type: LoadingEvent.Success})
+//       statsReportUpdatingMachine.success()
 //     }
 //
 //   }
 // })
 
-/**
- * Listen for user regression updates and update the reportItems to reflect the changes.
- */
-merge(statsRegressionMachine.observer).subscribe({
-  next: (state) => {
-
-    if (state.value === LoadingEvent.Success) {
-
-      const changeList = []
-      // get report items which will be in their default state initially
-      // @ts-ignore
-      const items = statsStore.reportState.reportItems[statsStore.uiXYState.selectedHorizon] as ReportItem[]
-      // console.log("ITEMS", statsStore.reportState.reportItems, statsStore.uiXYState.selectedHorizon, items)
-
-      for (let i = 0; i < items.length; i++) {
-        const item = items[i]
-
-        if (item.regression !== null) {
-          const key = statsCreatePrimaryKey(item.x, item.y)
-          // @ts-ignore
-          const result = statsStore.regressionState.results[key].results[item.regression]
-          changeList.push({idx: i, key: 'regressionResult', value: result})
-        }
-
-        // report item is in default state
-        if (item.regression === null) {
-          const key = statsCreatePrimaryKey(item.x, item.y)
-          const result = statsStore.regressionState.results[key]
-
-          const top = getRegressionResultRanking(result, key)
-          if (top.isErr) {
-            logFailure('getRegressionResultRanking', top.error)
-            return
-          }
-          const [r2, cov, rtype] = top.value
-
-
-          const changes = [{idx: i, key: 'regression', value: rtype}, {idx: i, key: 'r2', value: r2}, {
-            idx: i,
-            key: 'cov',
-            value: cov
-          }, {
-            idx: i,
-            key: 'regressionResult',
-            // @ts-ignore
-            value: result.results[rtype]}]
-          changeList.push(...changes)
-        }
-      }
-      statsReportUpdatingMachine.service.send({type: LoadingEvent.Update, payload: changeList})
-    }
-  }
-})
+// /**
+//  * Listen for user regression updates and update the reportItems to reflect the changes.
+//  */
+// merge(statsRegressionMachine.observer).subscribe({
+//   next: (state) => {
+//
+//     if (state.type === LoadingEvent.Success) {
+//
+//       const changeList = []
+//       // get report items which will be in their default state initially
+//       // @ts-ignore
+//       const items = statsStore.reportState.reportItems[statsStore.uiXYState.selectedHorizon] as ReportItem[]
+//       // console.log("ITEMS", statsStore.reportState.reportItems, statsStore.uiXYState.selectedHorizon, items)
+//
+//       for (let i = 0; i < items.length; i++) {
+//         const item = items[i]
+//
+//         if (item.regression !== null) {
+//           const key = statsCreatePrimaryKey(item.x, item.y)
+//           // @ts-ignore
+//           const result = statsStore.regressionState.results[key].results[item.regression]
+//           changeList.push({idx: i, key: 'regressionResult', value: result})
+//         }
+//
+//         // report item is in default state
+//         if (item.regression === null) {
+//           const key = statsCreatePrimaryKey(item.x, item.y)
+//           const result = statsStore.regressionState.results[key]
+//
+//           const top = getRegressionResultRanking(result, key)
+//           if (top.isErr) {
+//             logFailure('getRegressionResultRanking', top.error)
+//             return
+//           }
+//           const [r2, cov, rtype] = top.value
+//
+//
+//           const changes = [{idx: i, key: 'regression', value: rtype}, {idx: i, key: 'r2', value: r2}, {
+//             idx: i,
+//             key: 'cov',
+//             value: cov
+//           }, {
+//             idx: i,
+//             key: 'regressionResult',
+//             // @ts-ignore
+//             value: result.results[rtype]}]
+//           changeList.push(...changes)
+//         }
+//       }
+//       statsReportUpdatingMachine.service.send(LoadingEvent.Update, changeList)
+//     }
+//   }
+// })
 
 // TODO: Comment all this stats code
 // DONE: ReportItem has regression as the name AND regressionName

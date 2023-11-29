@@ -20,7 +20,7 @@ export const MapLayers = () => {
     const idx = mapStore.mapLayersState.layers.findIndex(x => x.id === id)
     layers[idx].active = !layers[idx].active
     mapStoreLayersMachine.reset()
-    mapStoreLayersMachine.service.send({type: LoadingEvent.Load, payload: layers})
+    mapStoreLayersMachine.service.send(LoadingEvent.Load, {layers})
   }
 
   const elements: any = []

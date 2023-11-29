@@ -8,7 +8,7 @@ import {just} from "true-myth/maybe";
 import {PointColorMenu, SelectedPoint} from "../model";
 import {soilStore} from "../../../lib/stores/soil/store";
 import PhotoModal from "./photo";
-import {statsUISharedStateMachine, uiSharedState} from "../../stats/store";
+import {statsStore, statsUISharedStateMachine} from "../../stats/store";
 import {useLoadMachinesState, useLoadMachineStateWithUpdate} from "../../../core/machine";
 import {PhotoReference} from "../../../lib/stores/soil/model.ts";
 
@@ -126,7 +126,7 @@ const _onPointSelected = (sid: any, idx: number, point: any, onPointSelected: an
   }
 }
 const PointsOverlay = ({show}: {show: boolean}) => {
-  // const [_,update] = useLoadMachineStateWithUpdate(statsUISharedStateMachine)
+  const [_,update] = useLoadMachineStateWithUpdate(statsUISharedStateMachine)
   useLoadMachinesState([statsUISharedStateMachine])
   const latlng = soilUIStore.soilDataState.selectedHorizonDataPoints
   const sampleIds = soilStore.data.soilSampleIds
@@ -136,62 +136,58 @@ const PointsOverlay = ({show}: {show: boolean}) => {
   const selectedDataColumn = soilUIStore.soilDataState.selectedColumnData
   const pointColor = PointColorMenu[soilUIStore.toolbarState.pointColor].menuName.toLowerCase()
   const header = soilUIStore.toolbarState.selectedSoilHeaderName
-  // const [selectedPoint, setSelectedPoint] = [uiSharedState.soilUISelectedPointAtom, update]
+  const [selectedPoint, setSelectedPoint] = [statsStore.uiSharedState.soilUISelectedPointAtom, update]
 
   if (!show) return null
   // console.log("SELECTED COLUMN DATA", selectedDataColumn)
-  // const onPointSelected = (e:any) => setSelectedPoint(just({point: latLngToPoint(e.latlng), latlng: e.latlng, sampleId: e.target.options.sampleId, rowIndex: e.target.options.rowIndex} as SelectedPoint))
+  const onPointSelected = (e:any) => setSelectedPoint(just({point: latLngToPoint(e.latlng), latlng: e.latlng, sampleId: e.target.options.sampleId, rowIndex: e.target.options.rowIndex} as SelectedPoint))
 
   // these are not in sync when atoms are reset so rendering fails
   if (!latlng.length || !sampleIds.length) {
     return null
   }
 
+  return (
+    <Fragment>
+      {latlng.map((point, i) => {
+        const sampleId = sampleIds[i]
+        const hasPhoto = soilPhotoUrls[sampleId]
+        const pointsIndex = i
 
-  return (<div></div>)
 
+        // TODO: add point selection function
 
-  // return (
-  //   <Fragment>
-  //     {latlng.map((point, i) => {
-  //       const sampleId = sampleIds[i]
-  //       const hasPhoto = soilPhotoUrls[sampleId]
-  //       const pointsIndex = i
-  //
-  //
-  //       // TODO: add point selection function
-  //
-  //       // these options server two purposes: 1, to set values for leaflet and 2, to pass values to callback when clicked
-  //       let opts = {color: pointColor, fillColor: pointColor, fillOpacity: 1, radius: 8, sampleId: sampleId, rowIndex: pointsIndex, active:false}
-  //
-  //       if (selectedPoint.isJust) {
-  //         // change color if point is selected
-  //         if (selectedPoint.value.sampleId === sampleId) {
-  //           opts = {
-  //             color: selectedPointColor,
-  //             fillColor: selectedPointColor,
-  //             fillOpacity: 1,
-  //             radius: 12,
-  //             sampleId: sampleId,
-  //             rowIndex: pointsIndex,
-  //             active: true
-  //           }
-  //         }
-  //       }
-  //
-  //       return <CircleMarker
-  //         interactive={true}
-  //         // eventHandlers={{click: onPointSelected}}
-  //         pathOptions={opts}
-  //         // zIndex={10}
-  //         pane={'markerPane'}
-  //         key={'cm' + i} center={point}>
-  //         <TooltipContent active={opts.active} onClick={_onPointSelected(sampleId, pointsIndex, point, onPointSelected)} sampleId={sampleId} hasPhoto={hasPhoto} columnData={selectedDataColumn.columnData[pointsIndex] || []} header={header} />
-  //         <PopupContent sampleId={sampleId} header={soilData.head} row={soilData.body[pointsIndex] || []} photoUrl={soilPhotoUrls[sampleId]?.url}/>
-  //       </CircleMarker>
-  //     })}
-  //   </Fragment>
-  // )
+        // these options server two purposes: 1, to set values for leaflet and 2, to pass values to callback when clicked
+        let opts = {color: pointColor, fillColor: pointColor, fillOpacity: 1, radius: 8, sampleId: sampleId, rowIndex: pointsIndex, active:false}
+
+        if (selectedPoint.isJust) {
+          // change color if point is selected
+          if (selectedPoint.value.sampleId === sampleId) {
+            opts = {
+              color: selectedPointColor,
+              fillColor: selectedPointColor,
+              fillOpacity: 1,
+              radius: 12,
+              sampleId: sampleId,
+              rowIndex: pointsIndex,
+              active: true
+            }
+          }
+        }
+
+        return <CircleMarker
+          interactive={true}
+          // eventHandlers={{click: onPointSelected}}
+          pathOptions={opts}
+          // zIndex={10}
+          pane={'markerPane'}
+          key={'cm' + i} center={point}>
+          <TooltipContent active={opts.active} onClick={_onPointSelected(sampleId, pointsIndex, point, onPointSelected)} sampleId={sampleId} hasPhoto={hasPhoto} columnData={selectedDataColumn.columnData[pointsIndex] || []} header={header} />
+          <PopupContent sampleId={sampleId} header={soilData.head} row={soilData.body[pointsIndex] || []} photoUrl={soilPhotoUrls[sampleId]?.url}/>
+        </CircleMarker>
+      })}
+    </Fragment>
+  )
 }
 
 export default PointsOverlay

@@ -27,7 +27,7 @@ export const RawSoilDataDrop = (props:DropFileProps) => {
 
   useEffect(() => {
     const sub = networkSoilRawUploadMachine.observer.subscribe({
-      next: (x) => {
+      next: (x: { value: string; }) => {
         if (x.value === LoadingEvent.Success) {
           setLoading(false)
           setFile([])
@@ -70,7 +70,7 @@ export const RawSoilDataDrop = (props:DropFileProps) => {
               return
             }
 
-            networkSoilRawUploadMachine.service.send({type: LoadingEvent.Load, payload: {event: file.first(),meta: meta}})
+            networkSoilRawUploadMachine.service.send(LoadingEvent.Load, {event: file.first(),meta: meta})
 
           }} activeClass={'mt-7 p-2 text-normal bg-green-50 border-green-500 text-green-900'} inactiveClass={'mt-7 p-2 text-normal'} />
 

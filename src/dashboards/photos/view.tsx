@@ -87,14 +87,16 @@ const Photos = () => {
         {sampleIds.map((sampleId, i) => {
           const photoData = photoUrls[sampleId]
           const hasData = photoData?.url.length > 0
-          console.log("PHOTO DATA", photoData)
+          // if (!hasData) {
+          //   return null
+          // }
           return (
             <div
               key={'v'+i}
               className={classNames("p-4 mt-4 mr-4 cursor-pointer z-0", "border-2 border-gray-100 rounded", delayedInc === i? "border-gray-400": "")}
               onClick={() => setInc(i)}
               onDragOver={(e) => stopPropagation(e)}
-              onDrop={(e) => networkSoilPhotoUploadMachine.service.send({type: LoadingEvent.Load, payload: {event:e,sampleId,props}})}
+              onDrop={(e) => networkSoilPhotoUploadMachine.service.send(LoadingEvent.Load, {event:e,sampleId,props})}
             >
               <h4 className="text-xs text-gray-900 font-bold text-center">{sampleId}</h4>
               <img

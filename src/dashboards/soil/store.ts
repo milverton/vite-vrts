@@ -5,7 +5,7 @@ import {csvIndicesOf, csvRemoveColumns, emptyCsv} from "../../lib/csv";
 // @ts-ignore
 import {Maybe, nothing} from "true-myth/maybe";
 import {createCombinedHorizonData, rowToPoint} from "./transform";
-import {LoadingEvent, LoadingMachine, LoadingState} from "../../core/machine";
+import {LoadingEvent, LoadingMachine} from "../../core/machine";
 import {merge} from "rxjs";
 import {slugify} from "../../lib/common";
 
@@ -16,23 +16,25 @@ export let soilUIStore = resetSoilUI()
  * This machine is responsible for updating the soilStore.toolBarState which contains
  * state for ui toolbar components.
  */
-export const soilUIToolbarMachine = new LoadingMachine('Soil UI Machine')
+export const soilUIToolbarMachine = new LoadingMachine('Soil UI Toolbar Machine')
 
 soilUIToolbarMachine.observer.subscribe({
   next: (state) => {
-
-    switch (state.value) {
-      case LoadingState.Empty:
+    switch (state.type) {
+      case LoadingEvent.Reset:
         soilUIStore = {...soilUIStore, toolbarState: resetSoilUIToolbar()}
         break
-      case LoadingState.Updating:
-        if (!state.event) {
-          console.warn(state)
-          return
-        }
-        const payload = state.event.payload
+      case LoadingEvent.Update:
+        const payload = state.payload
         soilUIStore = {...soilUIStore, toolbarState: {...soilUIStore.toolbarState, ...payload}}
-        soilUIToolbarMachine.service.send({type: LoadingEvent.Success})
+        soilUIToolbarMachine.success()
+        break
+      case LoadingEvent.Success:
+        break
+      case LoadingEvent.Failure:
+        break;
+      default:
+        soilUIToolbarMachine.fail(`Unknown event: ${state.type}, state: ${state.value}`);
         break
     }
   }
@@ -48,14 +50,21 @@ export const soilUIDataMachine = new LoadingMachine('Soil UI Data Machine')
 
 soilUIDataMachine.observer.subscribe({
   next: (state) => {
-    switch (state.value) {
-      case LoadingState.Empty:
+    switch (state.type) {
+      case LoadingEvent.Reset:
         soilUIStore = {...soilUIStore, soilDataState: resetSoilUIData()}
         break
-      case LoadingState.Updating:
-        const payload = state.event.payload
+      case LoadingEvent.Update:
+        const payload = state.payload
         soilUIStore = {...soilUIStore, soilDataState: {...soilUIStore.soilDataState, ...payload}}
-        soilUIDataMachine.service.send({type: LoadingEvent.Success})
+        soilUIDataMachine.success()
+        break
+      case LoadingEvent.Success:
+        break
+      case LoadingEvent.Failure:
+        break;
+      default:
+        soilUIDataMachine.fail(`Unknown event: ${state.type}, state: ${state.value}`);
         break
     }
   }
@@ -68,7 +77,7 @@ soilUIDataMachine.observer.subscribe({
 merge(soilMachine.observer, soilUIToolbarMachine.observer).subscribe({
   next: (state) => {
 
-    if (state.value === LoadingEvent.Success) {
+    if (state.type === LoadingEvent.Success) {
 
       // extract coordinates from the selected horizon and format then into L.LatLngExpression for leaflet
       // const samplesByHorizon = Object.values(soilStore.data.soilHorizonData)
@@ -87,9 +96,8 @@ merge(soilMachine.observer, soilUIToolbarMachine.observer).subscribe({
       // combine all horizon data into a single object key by column name and containing an array of values for column
       const combinedHorizonData = createCombinedHorizonData(soilStore.data.soilHorizonData, soilStore.data.soilSampleIds)
 
-      soilUIDataMachine.service.send({
-        type: LoadingEvent.Update,
-        payload: {selectedHorizonData, selectedHorizonDataPoints, combinedHorizonData}
+      soilUIDataMachine.service.send(LoadingEvent.Update,
+        {selectedHorizonData, selectedHorizonDataPoints, combinedHorizonData
       })
     }
   }
@@ -115,10 +123,10 @@ merge(soilMachine.observer, soilUIToolbarMachine.observer).subscribe({
  */
 merge(soilMapsMachine.observer).subscribe({
   next: (state) => {
-    if (state.value === LoadingEvent.Success) {
+    if (state.type === LoadingEvent.Success) {
       let menu = Object.keys(soilStore.maps.soilMapUrls).map((h: string, i: number) => ({menuName: h, menuType: i}))
       menu.splice(0, 0, {menuName: 'NA', menuType: -1})
-      soilUIToolbarMachine.service.send({type: LoadingEvent.Update, payload: {mapMenu: menu}})
+      soilUIToolbarMachine.service.send(LoadingEvent.Update, {mapMenu: menu})
     }
   }
 })
@@ -127,9 +135,10 @@ const toRemove = ['Longitude', 'Latitude', 'Code', 'Depth Min[cm]', 'Depth Max[c
 /**
  * Listen to toolbar changes and update selectedColumn data and shrunkHorizonData
  */
+// FIXME: This won't run unless the toolbar is updated, need another update mechanism
 merge(soilUIToolbarMachine.observer).subscribe({
   next: (state) => {
-    if (state.value === LoadingEvent.Success) {
+    if (state.type === LoadingEvent.Success) {
 
       const data = soilUIStore.soilDataState.selectedHorizonData
       const header = soilUIStore.toolbarState.selectedSoilHeader
@@ -180,7 +189,7 @@ merge(soilUIToolbarMachine.observer).subscribe({
         payload = {...payload, shrunkHorizonData: data}
 
       }
-      soilUIDataMachine.service.send({type: LoadingEvent.Update, payload})
+      soilUIDataMachine.service.send(LoadingEvent.Update, payload)
     }
   }
 })

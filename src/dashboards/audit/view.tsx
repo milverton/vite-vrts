@@ -16,7 +16,7 @@ const Audit = () => {
 
   const clientsGrouped = metaStore.metasByGroup
   const setSelectedClient = (client: Maybe<DBMetaGroup>) => {
-    metaClientMachine.service.send({type: LoadingEvent.Update, payload: client})
+    metaClientMachine.service.send(LoadingEvent.Update, client)
   }
 
   const clients = Object.values(clientsGrouped).filter(c => c.block() !== 'Note')

@@ -19,7 +19,7 @@ const AuditTableRow = ({meta, bools, clickable, season} : AuditTableCellProps) =
     if (client) {
       // metaSeasonMachine.reset()
       // metaSeasonMachine.service.send({type: LoadingEvent.Load, payload: {menuName: client.season(), menuType: client.season()}})
-      metaClientMachine.service.send({type: LoadingEvent.Update, payload: just(client)})
+      metaClientMachine.service.send(LoadingEvent.Update, just(client))
     }
   }
   return (

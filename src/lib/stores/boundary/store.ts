@@ -21,37 +21,29 @@ export const boundaryStore = {...initial}
 
 boundaryMachine.observer.subscribe({
   next: (state) => {
-    switch (state.value) {
-      case LoadingState.Empty:
+    switch (state.type) {
+      case LoadingEvent.Reset:
         boundaryStore.meta = null
         boundaryStore.boundary = []
         boundaryStore.hectares = 0
         boundaryStore.bbox = new BoundingBox(0, 0)
         break
-      case LoadingState.Loading:
-        const meta = state.event.payload.meta;
-        const boundaries = state.event.payload.boundaries;
+      case LoadingEvent.Load:
+        const meta = state.payload.meta;
+        const boundaries = state.payload.boundaries;
 
         boundaryStore.boundary = boundaries
         boundaryStore.bbox = boundaryToBoundingBox(boundaries)
         boundaryStore.hectares = boundaryGetHectares(boundaries)
         boundaryStore.meta = meta
-        boundaryMachine.service.send(LoadingEvent.Success)
-
-        // boundaryLoadFromServer(state.event.client)
-        //   .then((data) => {
-        //     boundaryStore.boundary = data.boundary
-        //     boundaryStore.bbox = boundaryToBoundingBox(data.boundary)
-        //     boundaryStore.hectares = boundaryGetHectares(data.boundary)
-        //     boundaryStore.meta = state.event.client.getBoundary()
-        //     boundaryMachine.service.send(LoadingEvent.Success)
-        //   })
-        //   .catch((err) => {
-        //     logFailure('Error loading boundary', err)
-        //     boundaryMachine.service.send(LoadingEvent.Failure)
-        //   })
+        boundaryMachine.success()
         break
+      case LoadingEvent.Success:
+        break
+      case LoadingEvent.Failure:
+        break;
       default:
+        boundaryMachine.fail(`Unknown event: ${state.type}, state: ${state.value}`);
         break
     }
   }
@@ -59,15 +51,15 @@ boundaryMachine.observer.subscribe({
 
 metaClientMachine.observer.subscribe({
   next: (state) => {
-    if (state.value === LoadingEvent.Success) {
+    if (state.type === LoadingEvent.Success) {
       if (metaStore.client.isJust) {
-        if (boundaryMachine.service.getSnapshot().value === LoadingState.Loaded) {
+        if (boundaryMachine.value === LoadingState.Loaded) {
           boundaryMachine.service.send(LoadingEvent.Reset)
         }
         const client = metaStore.client.value;
         const meta = client.getAllFieldsBoundary()
         networkBoundaryAllFieldsMachine.reset()
-        networkBoundaryAllFieldsMachine.service.send({type: LoadingEvent.Load, payload: meta})
+        networkBoundaryAllFieldsMachine.service.send(LoadingEvent.Load, meta)
         // boundaryMachine.service.send({type: LoadingEvent.Load, payload: metaStore.client})
       }
     }
@@ -75,10 +67,10 @@ metaClientMachine.observer.subscribe({
 })
 
 networkBoundaryAllFieldsMachine.service.subscribe({
-  next: (state: { event: { type: string; }; }) => {
-    if (state.value == LoadingEvent.Success) {
+  next: (state: {type: string}) => {
+    if (state.type == LoadingEvent.Success) {
       // @ts-ignore
-      boundaryMachine.service.send({type: LoadingEvent.Load, payload: {...networkBoundaryAllFieldsStore.data}})
+      boundaryMachine.service.send(LoadingEvent.Load, {...networkBoundaryAllFieldsStore.data})
     }
   }
 });
