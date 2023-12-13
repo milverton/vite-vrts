@@ -45,7 +45,7 @@ const loadGlobal = () => {
         }
 
         if (state.type === LoadingEvent.Success) {
-          console.log(`[GLOBAL] Received metaClientMachine success, sending load to 4 machines, metas: `, metaStore.metas.length)
+          console.log(`[GLOBAL] Received metaClientMachine success, sending load to 4 machines, metas: `, metaStore.metasByGroup)
           soilMachine.service.send(LoadingEvent.Update)
           networkSoilPointsMachine.service.send(LoadingEvent.Load, metaStore.client);
           networkSoilSamplesMachine.service.send(LoadingEvent.Load, metaStore.client);

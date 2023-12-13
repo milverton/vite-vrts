@@ -14,6 +14,7 @@ export enum MetaRecordFormat {
   Shapefile,
   ShpVrts,
   ShpPct,
+  ShpPctOld,
   ShpJd,
   Kml,
   KmlPct,
@@ -48,7 +49,7 @@ export enum MetaRecordFormat {
   GrAirborne,
   Wkt,
   Unassigned,
-  Deprecated,
+  Deprecated
 }
 
 

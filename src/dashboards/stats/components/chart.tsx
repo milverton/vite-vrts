@@ -86,14 +86,6 @@ export const useGoogleChart = ({reportItem, xName,yName, horizon, regressionType
     setChart(newChart)
   }
 
-  // useEffect(() => {
-  //   if (chartRef.current && onMount) {
-  //     console.log("A MOUNT HORSEY", chartRef.current)
-  //     onMount(chartRef)
-  //   }
-  // }, [chartRef,onMount])
-
-
   useEffect(() => {
 
     if (google && chartRef.current && !reportItem) {
@@ -108,6 +100,8 @@ export const useGoogleChart = ({reportItem, xName,yName, horizon, regressionType
     // @ts-ignore
     const cData = new google.visualization.DataTable(null)
     const builder = new ColumnBuilder(cData, predictions, xName, yName, nextInSeries())
+
+    // FIXME: These values should not be hardcoded
     const showSodium = showThresholds && yName.includes('Na %')
     const showPh = showThresholds && yName.includes('pH CaCl')
     const showColK = showThresholds && yName.includes('K Colwell')
@@ -139,12 +133,17 @@ export const useGoogleChart = ({reportItem, xName,yName, horizon, regressionType
     if (yName.toLowerCase().includes('ph')) {
       yMin = 3.5
     }
-    // let xMin = 0
+
 
     let yMax = maxY
     const yMaxBuffer = yMax * 0.05
     const xMax = Math.ceil(maxX)
     const xMaxBuffer = xMax * 0.05
+
+    // let xMin = 0
+    // let xMin = 0
+    // const xMinBuffer = minX * 0.05
+    // xMin = Math.max(0, )
 
 
     const options = {
