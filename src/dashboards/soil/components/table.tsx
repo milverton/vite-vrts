@@ -31,7 +31,7 @@ const SoilTable = () => {
   const shrinkTable = soilUIStore.toolbarState.shrinkTable
   const [selectedPoint, setSelectedPoint] = [statsStore.uiSharedState.soilUISelectedPointAtom, update]
 
-  console.log(tm, csv, latlngs)
+  // console.log(tm, csv, latlngs)
 
   return (
     <div key={tm} className={classNames("relative bg-gray-100", shrinkTable? 'text-xs': '')}>

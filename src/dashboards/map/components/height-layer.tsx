@@ -1,6 +1,6 @@
 import {LoadingEvent, LoadingState, useLoadMachineState,} from "../../../core/machine";
 import {metaStore} from "../../../lib/stores/meta/store";
-import React, {useEffect, useState} from "react";
+import React, {useEffect, useRef, useState} from "react";
 import {NumberInput} from "../../../components/number-input/view";
 import {LoadButton} from "../../../components/loading-button/view";
 import {
@@ -18,6 +18,7 @@ import {
 } from "../../maps3d/three-js/components/MachineStatusVisuals";
 import {boundaryStore} from "../../../lib/stores/boundary/store";
 import {ThreeMapMenu} from "../../maps3d/components/ThreeMapMenu";
+import {debounceTime, Subject} from "rxjs";
 
 
 export const HeightLayer = (props: { simpleMode: any; }) => {
@@ -35,7 +36,8 @@ export const HeightLayer = (props: { simpleMode: any; }) => {
   const [samples, setSamples] = useState(threeJsStore.userSettings.Samples)
   const [radius, setRadius] = useState(threeJsStore.userSettings.Radius)
   const [scalePercentage, setScalePercentage] = useState(threeJsStore.userSettings.SquaredHeight)
-
+  const [scalePercentageSlider, setScalePercentageSlider] = useState(threeJsStore.userSettings.SquaredHeight)
+  const scalePercentageSubject = useRef(new Subject<number>()).current;
   const [machinesLoading, setMachinesLoading] = useState([MeshStatus.empty, SatelliteStatus.empty])
 
 
@@ -105,8 +107,16 @@ export const HeightLayer = (props: { simpleMode: any; }) => {
     })
   }
 
+  // Anytime a new value is submitted to scalePercentageSubject, we debounce it by 500ms
+  useEffect(() => {
+    const subscription = scalePercentageSubject.pipe(debounceTime(100))
+      .subscribe(value => setScalePercentage(value));
+    return () => subscription.unsubscribe(); //unsubscribe on unmount
+  }, [scalePercentageSubject])
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setScalePercentage(parseFloat(e.target.value))
+    setScalePercentageSlider(parseFloat(e.target.value));
+    scalePercentageSubject.next(parseFloat(e.target.value));
   }
   return (
     <>
@@ -116,8 +126,8 @@ export const HeightLayer = (props: { simpleMode: any; }) => {
           <div className="space-y-2">
             <div className="flex lbl-ring-outer mt-4 justify-between">
               <label htmlFor="difference" className="lbl-sm lbl-ring-inner">Squared Percentage of Height</label>
-              <p className="flex text-sm w-4 mr-2 space-between">{scalePercentage}</p>
-              <input className="w-full flex" id={'scale'} type="range" min={0} max={200} value={scalePercentage}
+              <p className="flex text-sm w-4 mr-2 space-between">{scalePercentageSlider}</p>
+              <input className="w-full flex" id={'scale'} type="range" min={0} max={200} value={scalePercentageSlider}
                      onInput={handleInputChange} step={1}/>
             </div>
             {props.simpleMode ? null : <div className="flex flex-col">

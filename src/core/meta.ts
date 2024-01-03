@@ -32,13 +32,19 @@ export enum MetaRecordFormat {
   Thorium,
   Uranium,
   TotalCount,
-  Emgr,
+  // ReSharper disable once InconsistentNaming
+  EmGr1s,
+  // ReSharper disable once InconsistentNaming
+  EmGr21s,
   ClientNote,
   Png,
   Jpg,
+  // ReSharper disable once InconsistentNaming
   Em1s,
+  // ReSharper disable once InconsistentNaming
   Em21s,
   Em1SGrSoilFusion,
+  Em21SGrSoilFusion,
   AllFieldsVrts,
   AllBoundariesKml,
   AllFieldsShp,

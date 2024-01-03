@@ -43,3 +43,7 @@ export const startAction = (name: string, timeout: number = 30000): () => void =
   return _startAction(name, timeout)
 
 }
+
+export const logGray = (msg: string) => {
+  console.log(`%c${msg}`, "color:gray;")
+}

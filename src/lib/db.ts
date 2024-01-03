@@ -3,13 +3,15 @@ import {Meta, MetaRecordFormat, MetaRecordStatus, MetaRecordType} from "../core/
 
 
 export const recordDetails = [
-  {'abbr': 'Raw', 'title': 'Bulk EM/GR Archive'},
+  {'abbr': 'Bulk', 'title': 'Bulk EM/GR Archive'},
   {'abbr': 'Br', 'title': 'Boundary Raw'},
   {'abbr': 'Bc', 'title': 'Boundary Clean'},
   {'abbr': 'EMr', 'title': 'EM Raw'},
   {'abbr': 'EMc', 'title': 'EM Clean'},
   {'abbr': 'GRr', 'title': 'GR Raw'},
   {'abbr': 'GRc', 'title': 'GR Clean'},
+  {'abbr': 'EmGr', 'title': 'EmGr Fusion'},
+  // {'abbr': 'EmGrc', 'title': 'EmGr Fusion Clean'},
   {'abbr': 'Pr', 'title': 'Soil Points Raw'},
   {'abbr': 'Pc', 'title': 'Soil Points Clean'},
   {'abbr': 'Sr', 'title': 'Soil Results Raw'},
@@ -86,6 +88,8 @@ export class DBMetaGroup {
         return `EM${s}`
       } else if (e.type === MetaRecordType.Gr) {
         return `GR${s}`
+      } else if (e.type == MetaRecordType.EmGr) {
+        return `EmGr`
       } else if (e.type === MetaRecordType.Boundary) {
         return `B${s}`
       } else if (e.type === MetaRecordType.SoilPoints) {
@@ -95,55 +99,17 @@ export class DBMetaGroup {
       } else if (e.type === MetaRecordType.MapImage) {
         return "Mi"
       } else if (e.type === MetaRecordType.BulkData) {
-        switch (e.format) {
-          case MetaRecordFormat.Emgr:
-            return `Raw`
-        }
-        switch (e.format) {
-          case MetaRecordFormat.ClientNote:
-            return `Dn`
-        }
-        switch (e.format) {
-          case MetaRecordFormat.Em1SGrSoilFusion:
-            return `Sf`
-        }
-        switch (e.status) {
-          case MetaRecordStatus.Raw:
-            return `Srr`
-          // case DBRecordState.Clean:
-          //   return `Src`
-        }
-        console.warn(`Unknown record type ${e.type} ${e.format}`)
-        return 'X'
+        return 'Bulk'
       } else if (e.type === MetaRecordType.Document) {
-        switch (e.format) {
-          case MetaRecordFormat.ClientNote:
-            return `Dn`
-        }
-        switch (e.format) {
-          case MetaRecordFormat.Em1SGrSoilFusion:
-            return `Sf`
-        }
-        switch (e.status) {
-          case MetaRecordStatus.Raw:
-            return `Srr`
-          // case DBRecordState.Clean:
-          //   return `Src`
-        }
-        console.warn(`Unknown record type ${e.type} ${e.format}`)
-        return 'X'
+        return 'Doc'
       } else if (e.type === MetaRecordType.SoilFusion) {
         switch (e.format) {
           case MetaRecordFormat.Em1SGrSoilFusion:
             return `Sf`
+          case MetaRecordFormat.Em21SGrSoilFusion:
+            return `Sf`
         }
-        switch (e.status) {
-          case MetaRecordStatus.Raw:
-            return `Srr`
-          // case DBRecordState.Clean:
-          //   return `Src`
-        }
-        console.warn(`Unknown record type ${e.type} ${e.format}`)
+        console.warn(`Unknown record type ${MetaRecordType[e.type]} ${MetaRecordFormat[e.format]}`)
         return 'X'
       } else if (e.type === MetaRecordType.StatsReport) {
         switch (e.status) {
@@ -152,10 +118,10 @@ export class DBMetaGroup {
           // case DBRecordState.Clean:
           //   return `Src`
         }
-        console.warn(`Unknown record type ${e.type} ${e.format}`)
+        console.warn(`Unknown record type ${MetaRecordType[e.type]} ${MetaRecordFormat[e.format]}`)
         return 'X'
       } else {
-        console.warn(`Unknown record type ${e.type} ${e.format}`)
+        console.warn(`Unknown record type ${MetaRecordType[e.type]} ${MetaRecordFormat[e.format]}`)
         return 'X'
       }
     }).filter(x => x.trim().length > 0)

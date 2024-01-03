@@ -63,9 +63,9 @@ const MapView = (
           try {
             // the draw functions must wait for the previous one to finish
             await f(canvasReference, canvasScale, zoom, lineScale, pointScaleFn)
-          } catch (e) {
+          } catch (_) {
             // a failure here is not a big deal, just log it
-            console.warn(e)
+            // logGray(e.toString())
           }
         }
       }

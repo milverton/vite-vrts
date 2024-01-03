@@ -6,8 +6,8 @@
 import {LoadingEvent, LoadingMachine} from "../core/machine";
 import {logFailure} from "../lib/stores/logging";
 
-let networkPingStore = {
-  data: {},
+export let networkPingStore = {
+  data: -1,
   error: {}
 };
 
@@ -18,7 +18,7 @@ networkPingMachine.observer.subscribe({
       case LoadingEvent.Reset:
         // Reset the store
         networkPingStore = {
-          data: {},
+          data: -1,
           error: {}
         };
         break;
@@ -27,18 +27,20 @@ networkPingMachine.observer.subscribe({
         fetch('http://localhost:3001/api/v1/core/check')
           .then(response => {
             if (!response.ok) {
-              console.log(response)
+              // console.warn(response)
               throw new Error(`Network response was not ok, status: ${response.status} ${response.statusText}`)
             }
             // return response.json();
           })
-          .then((data: any) => {
-            networkPingStore.data = data;
+          .then((_: any) => {
+            networkPingStore.data = Date.now();
+            networkPingStore.error = {};
             networkPingMachine.success();
           })
           .catch(error => {
-            console.error('There has been a problem with your fetch operation:', error);
+            // console.error('There has been a problem with your fetch operation:', error);
             networkPingStore.error = error.message;
+            networkPingStore.data = -1;
             networkPingMachine.fail(error.message);
           });
         break;

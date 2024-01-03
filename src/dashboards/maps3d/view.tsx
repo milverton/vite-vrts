@@ -121,7 +121,7 @@ const Maps3D = () => {
       setIsSimulating(false)
     }
     // @ts-ignore
-    setMachinesLoading(loading)
+
     if (threeJsWaterFlowMachine.value === 'Loading') {
       setIsSimulating(true)
     }
@@ -129,7 +129,7 @@ const Maps3D = () => {
       setIsSimulating(false)
     }
     // @ts-ignore
-    return setMachinesLoading(loading)
+    setMachinesLoading(loading)
 
   }, [waterTime, waterSimTime])
 

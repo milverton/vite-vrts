@@ -17,7 +17,7 @@ export const StringSelect = ({className, name, menu, selected, setSelected}: Str
         setSelected(changed)
       }}
     >
-      {menu.map(o => <option className="" key={o.menuType}>{o.menuName}</option>)}
+      {menu.map((o,i) => <option className="" key={slugify(o.menuType) + i}>{o.menuName}</option>)}
     </select>
   )
 }

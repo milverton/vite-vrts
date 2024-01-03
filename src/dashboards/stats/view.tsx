@@ -1,4 +1,4 @@
-import {useEffect, useState} from "react"
+
 import {
   statsDataMachine,
   statsRegressionMachine,
@@ -478,47 +478,7 @@ export const extractCoordinatesForCsvType = (csv: ICsv, csvType: CsvType): Ok<nu
 }
 
 // @ts-ignore
-const FusionMap = () => {
-  useLoadMachinesState([fusionMachine])
-  const coordinates = extractCoordinatesForCsvType(fusionStore.fusionData.csv, fusionStore.fusionData.type).unwrapOr([])
-  const bbox = boundaryStore.bbox
-
-  const emCoordinates = getPointsForLonLat(fusionStore.fusionData.csv, 'em-lat', 'em-lon').unwrapOr([])
-  const grCoordinates = getPointsForLonLat(fusionStore.fusionData.csv, 'gr-lat', 'gr-lon').unwrapOr([])
-
-  const [labels, setLabels] = useState<string[]>([])
-
-  useEffect(() => {
-
-    if (coordinates.length === 0) {
-      return
-    }
-
-    if (emCoordinates.length === 0) {
-      return
-    }
-
-    if (grCoordinates.length === 0) {
-      return
-    }
-
-    const cheapRuler = new CheapRuler(mean(coordinates.map(c => c[1])), 'meters')
-    const emDistances = coordinates.map((c,i) => {
-      const d = cheapRuler.distance(c as Point, emCoordinates[i] as Point)
-      return d
-    })
-    const grDistances = coordinates.map((c,i) => {
-      const d = cheapRuler.distance(c as Point, grCoordinates[i] as Point)
-      return d
-    })
-    let _lbls = [...fusionStore.fusionSampleIds]
-    _lbls = _lbls.map((s, i) => `${s}  EM ${round(emDistances[i], 0)}m  GR ${round(grDistances[i], 0)}m`)
-    setLabels(_lbls)
-  }, [coordinates, emCoordinates, grCoordinates]);
-
-
-  // console.log('FUSION', fusionStore.fusionData.csv.head)
-  // console.log("EM", emCoordinates, coordinates)
+const FusionMap = ({coordinates, bbox, emCoordinates, grCoordinates, labels}: {coordinates: number[][], bbox: BoundingBox, emCoordinates: number[][], grCoordinates: number[][], labels: string[]}) => {
 
   return (
     <div className="w-full h-full flex items-center justify-center">
@@ -764,11 +724,37 @@ const FusionMap = () => {
 //     </div>
 //   )
 // }
+const computeLabels = ({coordinates, emCoordinates, grCoordinates}: {coordinates: number[][], emCoordinates: number[][], grCoordinates: number[][]}): string[] => {
 
+
+    if (coordinates.length === 0) {
+      return []
+    }
+
+    if (emCoordinates.length === 0) {
+      return []
+    }
+
+    if (grCoordinates.length === 0) {
+      return []
+    }
+
+    const cheapRuler = new CheapRuler(mean(coordinates.map(c => c[1])), 'meters')
+    const emDistances = coordinates.map((c,i) => {
+      const d = cheapRuler.distance(c as Point, emCoordinates[i] as Point)
+      return d
+    })
+    const grDistances = coordinates.map((c,i) => {
+      const d = cheapRuler.distance(c as Point, grCoordinates[i] as Point)
+      return d
+    })
+    let _lbls = [...fusionStore.fusionSampleIds]
+    return _lbls.map((s, i) => `${s}  EM ${round(emDistances[i], 0)}m  GR ${round(grDistances[i], 0)}m`)
+}
 const StatsView = () => {
   useLoadMachinesState([statsRegressionMachine, fusionMachine, statsDataMachine])
 
-  console.log("STATS VIEW", statsStore)
+  // console.log("STATS VIEW", statsStore)
 
   const [_,setSelectedRow] = useLoadMachineStateWithUpdate(statsUISharedStateMachine)
   const statsResult = statsStore.regressionState.selectedResult
@@ -783,6 +769,12 @@ const StatsView = () => {
   const showOutliers = statsStore.uiRegressionState.showOutliers
   const showThresholds = statsStore.uiRegressionState.showThresholds
   // const [selectedRow, setSelectedRow] = useAtom(statsUISelectedRowAtom)
+
+  const coordinates = extractCoordinatesForCsvType(fusionStore.fusionData.csv, fusionStore.fusionData.type).unwrapOr([])
+  const bbox = boundaryStore.bbox
+  const emCoordinates = getPointsForLonLat(fusionStore.fusionData.csv, 'em-lat', 'em-lon').unwrapOr([])
+  const grCoordinates = getPointsForLonLat(fusionStore.fusionData.csv, 'gr-lat', 'gr-lon').unwrapOr([])
+  const labels = computeLabels({coordinates, emCoordinates, grCoordinates})
 
   const [__, update] = useLoadMachineStateWithUpdate(statsRegressionOutliersMachine)
 
@@ -829,7 +821,7 @@ const StatsView = () => {
         />
       </div>
       {/*<ReportSelectionTable className={'mx-2 mt-8 p-4 border-t-solid border-t-2 border-gray-200'} title={'Regression Report Setup'}/>*/}
-      {/*<FusionMap/>*/}
+      <FusionMap coordinates={coordinates} bbox={bbox} emCoordinates={emCoordinates} grCoordinates={grCoordinates} labels={labels}/>
       {/*<FusionGenerator />*/}
     </div>
   )
