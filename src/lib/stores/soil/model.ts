@@ -3,11 +3,12 @@ import {emptyCsv, ICsv} from "../../csv";
 // @ts-ignore
 import {Maybe, nothing} from "true-myth/maybe";
 import {Meta} from "../../../core/meta";
-import {MapVariant} from "../../../dashboards/soil/model";
+import {MenuProps} from "../../../components/string-select/model.tsx";
+
 
 export interface MapOverlayProps {
   name: string
-  url: (variant:MapVariant) => string
+  url: (variant:MenuProps) => string
   bbox: [number, number, number, number]
   image?: HTMLImageElement | null
 }
@@ -15,7 +16,7 @@ export interface MapOverlayProps {
 export const emptyMapOverlay = ():MapOverlayProps => {
   return {
     name: '',
-    url: (_:MapVariant) => '',
+    url: (_:MenuProps) => '',
     bbox: [0, 0, 0, 0],
     image: null
   }

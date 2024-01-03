@@ -3,8 +3,7 @@ import {MAP_URL, PHOTO_URL, SoilState} from "./model";
 // @ts-ignore
 import {just, Maybe} from "true-myth/maybe";
 import {soilStore} from "./store";
-import {MapVariant} from "../../../dashboards/soil/model";
-
+import {MenuProps} from "../../../components/string-select/model.tsx";
 
 export const loadSoilPhotoMetas = (store: SoilState, client: DBMetaGroup): Promise<null> => {
   return new Promise((resolve, _reject) => {
@@ -55,7 +54,7 @@ export const loadSoilMapUrls = (store: SoilState, _client: DBMetaGroup): Promise
       // console.log("PRJ", prj, gps, meta.attributes)
       const data = {
         name: meta.format,
-        url: (variant:MapVariant) => `${MAP_URL}/${variant.toString()}/${metas[key].uid}`,
+        url: (variant:MenuProps) => `${MAP_URL}/${metas[key].uid}/${variant.menuType}`,
         bbox_gps: [gps.min_x, gps.min_y, gps.max_x, gps.max_y],
         bbox_prj: [prj.min_x, prj.min_y, prj.max_x, prj.max_y]
       }

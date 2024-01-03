@@ -8,7 +8,7 @@ import {soilStore} from "../../../lib/stores/soil/store";
 import {Maybe} from "true-myth/maybe";
 import {emptyMapOverlay, MapOverlayProps} from "../../../lib/stores/soil/model";
 import L, {LatLngBoundsExpression} from "leaflet";
-import {MapBoxSetup, MapVariant} from "../model";
+import {MapBoxSetup} from "../model";
 import {classNames} from "../../../lib/common";
 import {MenuProps} from "../../../components/string-select/model";
 import {boundaryStore} from "../../../lib/stores/boundary/store";
@@ -62,7 +62,7 @@ const MapEvents = ({mapFit, updateNumber,boundary}: {mapFit: number, updateNumbe
   return null
 }
 
-const MapOverlay = ({overlay, opacity, bbox,mapVariant}: {overlay:Maybe<MapOverlayProps>, opacity:number, bbox: BoundingBox, selectedBoundary:NewBoundary[], mapVariant: MapVariant}) => {
+const MapOverlay = ({overlay, opacity, bbox,mapVariant}: {overlay:Maybe<MapOverlayProps>, opacity:number, bbox: BoundingBox, selectedBoundary:NewBoundary[], mapVariant: MenuProps}) => {
 
   if (overlay.isNothing) {
     return null

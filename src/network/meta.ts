@@ -17,7 +17,7 @@ networkMetaMachine.observer.subscribe({
         };
         break;
       case LoadingEvent.Update:
-        fetch('http://localhost:3001/api/v1/core/metadata')
+        fetch('http://localhost:3001/api/v1/core/refresh-meta')
           .then(response => {
             if (!response.ok) {
               // console.error(response)

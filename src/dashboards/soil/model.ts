@@ -50,11 +50,11 @@ export const DefaultMapBoxSetup: MapBoxSetup = {
   url: url,
   attribution: attribution
 }
-export enum MapVariant {
-  Default = "default",
-  BlackAndWhite = "black-and-white",
-  Gradient = "gradient"
-}
+// export enum MapVariant {
+//   Default = "default",
+//   BlackAndWhite = "black-and-white",
+//   Gradient = "gradient"
+// }
 
 export interface SoilUIToolbarState {
   selectedHorizon: number
@@ -75,7 +75,8 @@ export interface SoilUIToolbarState {
   selectedPointColor: number
   mapZoom: number
   mapFit: number
-  mapVariant: MapVariant
+  mapVariant: MenuProps
+  mapVariants: MenuProps[]
 }
 
 export const resetSoilUIToolbar = ():SoilUIToolbarState => {
@@ -99,7 +100,8 @@ export const resetSoilUIToolbar = ():SoilUIToolbarState => {
     selectedPointColor: 3,
     mapZoom: 12,
     mapFit: 0,
-    mapVariant: MapVariant.Default
+    mapVariant: {menuName: 'Default', menuType: 'data'},
+    mapVariants: [{menuName: 'Default', menuType: 'data'}]
   }
 }
 

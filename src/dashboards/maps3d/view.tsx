@@ -23,10 +23,7 @@ import {MachinesHaveLoaded} from "./three-js/transform";
 import {GetWaterStatus, WaterStatus} from "./three-js/components/MachineStatusVisuals";
 import {boundaryStore} from "../../lib/stores/boundary/store";
 import {ThreeMapMenu} from "./components/ThreeMapMenu";
-import {MapVariant} from "../soil/model";
 import {HeightLayer} from "../map/components/height-layer";
-import {MenuProps} from "../../components/string-select/model";
-
 
 let CANVAS_WIDTH: number = 1400
 let CANVAS_HEIGHT: number = 900
@@ -80,26 +77,8 @@ const Maps3D = () => {
   const [simpleMode, setSimpleMode] = useState(true)
 
 
-  const mapTypes = [
-    {menuName: MapVariant.Default, menuType: 0} as MenuProps,
-    {menuName: MapVariant.Gradient, menuType: 1} as MenuProps,
-    {menuName: MapVariant.BlackAndWhite, menuType: 2} as MenuProps
-  ]
-  const [mapVariant, setMapVariant] = useState(mapTypes[0])
+  const [mapVariant, setMapVariant] = useState(soilUIStore.toolbarState.mapVariant)
 
-
-  const mapVariantFromMenu = (prop: MenuProps): MapVariant => {
-    switch (prop.menuName){
-      case MapVariant.Default:
-        return MapVariant.Default
-      case MapVariant.Gradient:
-        return MapVariant.Gradient
-      case MapVariant.BlackAndWhite:
-        return MapVariant.BlackAndWhite
-      default: return MapVariant.Default
-    }
-
-  }
 
   useEffect(() => {
     threeJsSceneSettingsMachine.service.send(LoadingEvent.Update,{
@@ -134,7 +113,7 @@ const Maps3D = () => {
   }, [waterTime, waterSimTime])
 
   useEffect(() => {
-    let mapUrl = soilStore.maps.soilMapUrls[selectedMap.menuName]?.url(mapVariantFromMenu(mapVariant))
+    let mapUrl = soilStore.maps.soilMapUrls[selectedMap.menuName]?.url(mapVariant)
     if (mapUrl === undefined) mapUrl = ""
 
     threeJsUserSettingsMachine.service.send(LoadingEvent.Update,{
@@ -214,7 +193,7 @@ const Maps3D = () => {
   useEffect(() => {
     //TODO - Review machine loading
     if (!MachinesHaveLoaded([threeJsSatelliteMachine, threeJsHeightMachine])) return;
-    let mapUrl = soilStore.maps.soilMapUrls[selectedMap.menuName]?.url(mapVariantFromMenu(mapVariant))
+    let mapUrl = soilStore.maps.soilMapUrls[selectedMap.menuName]?.url(mapVariant)
     if (mapUrl === undefined) mapUrl = ""
 
     threeJsUserSettingsMachine.service.send(LoadingEvent.Update,{
@@ -298,7 +277,7 @@ const Maps3D = () => {
                     <div className="flex flex-row m-0 w-full justify-between">
                       <div className="lbl-ring-outer mb-1 w-1/2">
                         <label htmlFor="map" className="lbl-sm lbl-ring-inner">Map Variant</label>
-                        <StringSelect name={'map'} className={'text-xs w-full rounded border-gray-200'} menu={mapTypes}
+                        <StringSelect name={'map'} className={'text-xs w-full rounded border-gray-200'} menu={soilUIStore.toolbarState.mapVariants}
                                       selected={mapVariant} setSelected={setMapVariant}/>
                       </div>
                       <div className="lbl-ring-outer mb-1 w-52">
