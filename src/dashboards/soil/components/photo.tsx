@@ -69,7 +69,7 @@ const PhotoModal = ({photoUrl, open, setOpen}: {photoUrl: string, open:boolean, 
 
   const [_, setLoaded] = useState(false)
 
-  console.log(open)
+  // console.log(open)
 
   return (
     <Transition.Root show={open} as={Fragment}>
