@@ -61,7 +61,7 @@ const HorizontalBarChart = ({data, colors, width}: { data: any, colors: any, wid
   }
   return (
     <BarChart
-      className="h-full w-full"
+      className="flex min-h-[4rem]"
       width={width}
       height={250}
       data={data}
@@ -113,14 +113,15 @@ const rgbaArrayToHex = (rgba: any[]) => {
 
 const formatInterpolationParams = (params: {
   type: any;
-  resolution_in_meters: any;
-  radius: any;
-  max_samples: any;
+  resolution_m2: any;
+  radius_m: any;
+  samples: any;
   weight: any;
 }) => {
+
   switch (params.type) {
     case "ExponentialDecay":
-      return `Resolution: ${params.resolution_in_meters}m, Radius: ${params.radius}m, Samples: ${params.max_samples}, Weight: ${params.weight}`
+      return `Resolution: ${params.resolution_m2}m, Radius: ${params.radius_m}m, Samples: ${params.samples}, Weight: ${params.weight}`
     default:
       return JSON.stringify(params)
   }
@@ -145,7 +146,65 @@ const formatBinningParams = (type: string, params: {
       return JSON.stringify(params)
   }
 }
+function capitalizeEachWord(str: string) {
+  if (str === undefined) return str
+  return str.split(' ').map((word: string) => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+}
 
+const DataCard = ({schema, bins, meta, interpolationParams}: {schema: any, bins: any, meta: any, interpolationParams: any}) => {
+  return (
+    <div className="w-3/6 flex items-center justify-center text-xs p-2">
+      <table className="min-w-full table-auto">
+        <tbody>
+        <tr>
+          <td className="px-4 py-1 border">Description</td>
+          <td className="px-4 py-1 border">{schema.description}</td>
+        </tr>
+        <tr>
+          <td className="px-4 py-1 border">Unit</td>
+          <td className="px-4 py-1 border">{capitalizeEachWord(schema.unit)} ({schema.unit_abbreviation})</td>
+        </tr>
+        <tr>
+          <td className="px-4 py-1 border">Stats</td>
+          <td className="px-4 py-1 border">Min: {bins.length ? bins[0].start_value : 0},
+            Max: {bins.length ? bins[bins.length - 1].end_value : 0},
+            Mean: {round(Number(meta.attributes.mean), 2)},
+            StdDev: {round(Number(meta.attributes.std_dev), 2)}</td>
+        </tr>
+        <tr>
+          <td className="px-4 py-1 border">Hectares</td>
+          <td className="px-4 py-1 border">{round(Number(meta.attributes.hectares), 2)}</td>
+        </tr>
+        <tr>
+          <td className="px-4 py-1 border">Samples</td>
+          <td className="px-4 py-1 border">{meta.attributes.count}</td>
+        </tr>
+        <tr>
+          <td className="px-4 py-1 border">Density</td>
+          <td className="px-4 py-1 border">{round(Number(meta.attributes.density), 2)} (samples/hectare)</td>
+        </tr>
+        <tr>
+          <td className="px-4 py-1 border">Projection</td>
+          <td className="px-4 py-1 border">{meta.attributes.projection}</td>
+        </tr>
+        <tr>
+          <td className="px-4 py-1 border">Binning</td>
+          <td
+            className="px-4 py-1 border">Strategy: {meta.attributes.binning_strategy}, {formatBinningParams(meta.attributes.binning_strategy, {
+            ...JSON.parse(meta.attributes.binning_parameters),
+            bin_count: bins.length
+          })}</td>
+        </tr>
+        <tr>
+          <td className="px-4 py-1 border">Interpolation</td>
+          <td
+            className="px-4 py-1 border">Method: {interpolationParams.type}, {formatInterpolationParams(interpolationParams)}</td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
+  )
+}
 
 const HomeMap = () => {
   const bm = useLoadMachineState(boundaryMachine)
@@ -159,18 +218,21 @@ const HomeMap = () => {
   const mapMenu = soilUIStore.toolbarState.mapMenu
   // const mapVariant = soilUIStore.toolbarState.mapVariant // TODO: Fixme
 
+  const tabs = [{menuName: "Chart", menuType: "chart"}, {menuName: "Data", menuType: "data"}]
+
   const [bins, setBins] = useState<any>([])
   const [palettes, setPalettes] = useState([])
   const [histogram, setHistogram] = useState([])
-  const [width, __] = useState(700)
+  const [width, __] = useState(1200)
   const [schema, setSchema] = useState({} as Schema)
   const [interpolationParams, setInterpolationParams] = useState({} as any)
+  const [tabChoice, setTabChoice] = useState(tabs[0])
 
   const selectedMapVariant = soilUIStore.toolbarState.mapVariant
   const mapVariants = soilUIStore.toolbarState.mapVariants
   const setShowPoints = (showPoints: any) => update({showPoints: showPoints})
   const setMap = (map: MenuEntry) => update({selectedMapMenuEntry: map})
-  const setMapVariant = (variant: string) => update({mapVariant: variant})
+  const setMapVariant = (variant: MenuProps) => update({mapVariant: variant})
   const setMapVariants = (variants: MenuProps[]) => update({mapVariants: variants})
   const setShowBoundaries = (showBoundaries: boolean) => update({showBoundaries: showBoundaries})
 
@@ -208,13 +270,21 @@ const HomeMap = () => {
       // TODO: std dev and mean are not in bins
 
       const variations = Object.values(JSON.parse(meta.attributes.variations))
+      setMapVariant({menuName: 'Default', menuType: 'data'})
+      setMapVariants( [{menuName: 'Default', menuType: 'data'}])
       setMapVariants(variations.map((x:any) => {
         return {menuName: x.name, menuType: x.uri}
       }))
     }
   }, [meta?.url]);
 
+  // useEffect(() => {
+  //   setMapVariants( [{menuName: 'Default', menuType: 'data'}])
+  // }, [map]);
+
+
   // console.log(mapVariants, meta)
+  // console.log(meta.attributes)
   return (
 
     <div className="w-full flex-col h-full flex items-center justify-start">
@@ -245,64 +315,35 @@ const HomeMap = () => {
           </div>
           {/*<hr/>*/}
           {/*<StringSelectorControl label="Map Size" menu={MapSize} selected={mapSize} setSelected={(e) => setMapSize(e.menuType)} />*/}
+          <div>
+            <button className="btn btn-blue w-1/2" onClick={() => setTabChoice(tabs[0])}>Chart</button>
+            <button className="btn btn-green w-1/2" onClick={() => setTabChoice(tabs[1])}>Info</button>
+
+            {/*{tabs.map((mapVariant: any) => {*/}
+            {/*  return (*/}
+            {/*    <RadioStyleSelector key={mapVariant.menuName} name="tab-choice" value={mapVariant.menuType}*/}
+            {/*                        title={mapVariant.menuName}*/}
+            {/*                        setSelected={() => setTabChoice(mapVariant)}*/}
+            {/*                        selected={mapVariant.menuType === tabChoice.menuType}/>*/}
+            {/*  )*/}
+            {/*})}*/}
+          </div>
         </div>
         {/*<div>*/}
         {/*  <h1 className="text-sm text-gray-500 mt-4">{schema?.description} ({schema?.unit_abbreviation})</h1>*/}
         {/*</div>*/}
-        <HorizontalBarChart data={histogram} colors={palettes} width={width}/>
 
-        {meta ?
-          <div className="w-3/6 flex items-center justify-center text-xs p-2">
-            <table className="min-w-full table-auto">
-              <tbody>
-              <tr>
-                <td className="px-4 py-1 border">Description</td>
-                <td className="px-4 py-1 border">{schema.description}</td>
-              </tr>
-              <tr>
-                <td className="px-4 py-1 border">Unit</td>
-                <td className="px-4 py-1 border">{schema.unit} ({schema.unit_abbreviation})</td>
-              </tr>
-              <tr>
-                <td className="px-4 py-1 border">Stats</td>
-                <td className="px-4 py-1 border">Min: {bins.length ? bins[0].start_value : 0},
-                  Max: {bins.length ? bins[bins.length - 1].end_value : 0},
-                  Mean: {round(Number(meta.attributes.mean), 2)},
-                  StdDev: {round(Number(meta.attributes.std_dev), 2)}</td>
-              </tr>
-              <tr>
-                <td className="px-4 py-1 border">Hectares</td>
-                <td className="px-4 py-1 border">{round(Number(meta.attributes.hectares), 2)}</td>
-              </tr>
-              <tr>
-                <td className="px-4 py-1 border">Samples</td>
-                <td className="px-4 py-1 border">{meta.attributes.sample_count}</td>
-              </tr>
-              <tr>
-                <td className="px-4 py-1 border">Density</td>
-                <td className="px-4 py-1 border">{round(Number(meta.attributes.density), 2)} (samples/hectare)</td>
-              </tr>
-              <tr>
-                <td className="px-4 py-1 border">Projection</td>
-                <td className="px-4 py-1 border">{meta.attributes.projection}</td>
-              </tr>
-              <tr>
-                <td className="px-4 py-1 border">Binning</td>
-                <td
-                  className="px-4 py-1 border">Strategy: {meta.attributes.binning_strategy}, {formatBinningParams(meta.attributes.binning_strategy, {
-                  ...JSON.parse(meta.attributes.binning_parameters),
-                  bin_count: bins.length
-                })}</td>
-              </tr>
-              <tr>
-                <td className="px-4 py-1 border">Interpolation</td>
-                <td
-                  className="px-4 py-1 border">Method: {interpolationParams.type}, {formatInterpolationParams(interpolationParams)}</td>
-              </tr>
-              </tbody>
-            </table>
-          </div>
-          : null}
+
+        {
+          meta != undefined && tabChoice.menuType === 'chart' ?
+            <HorizontalBarChart data={histogram} colors={palettes} width={width}/>: null
+        }
+
+        {
+          meta != undefined && tabChoice.menuType === 'data' ?
+            <DataCard schema={schema} bins={bins} meta={meta} interpolationParams={interpolationParams}/> : null
+        }
+
 
       </div>
       <div className="flex flex-col w-full h-full bg-gray-50 items-center">
