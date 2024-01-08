@@ -9,4 +9,9 @@ export default defineConfig({
   build: {
     outDir: 'wwwroot', // sets the output directory for the build
   },
+  server: {
+    proxy: {
+      '/api': 'http://localhost:3001', // Target server for API requests
+    }
+  }
 })

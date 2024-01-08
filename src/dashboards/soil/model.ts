@@ -36,17 +36,15 @@ export interface SelectedPoint {
 }
 
 // FIXME: Token needs to come in through the environment and not hard coded
-export const token = "sk.eyJ1IjoibWlsdmVydG9uIiwiYSI6ImNrenRhaWd3cTB6anIyd3BrZ3Jzc2czbHMifQ.FvHS5P4tdvx44VsETgedmg"
-export const url = `https://api.mapbox.com/styles/v1/mapbox/satellite-v9/tiles/{z}/{x}/{y}?access_token=${token}`
+// export const token = import.meta.env.VITE_MB_KEY
+export const url = (tk: string) => `https://api.mapbox.com/styles/v1/mapbox/satellite-v9/tiles/{z}/{x}/{y}?access_token=${tk}`
 export const attribution =   `© <a href="https://www.mapbox.com/about/maps/">Mapbox</a> © <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> <strong><a href="https://www.mapbox.com/map-feedback/" target="_blank">Improve this map</a></strong>`
 export interface MapBoxSetup {
-  token: string
-  url: string
+  url: (tk: string) => string
   attribution: string
 }
 
 export const DefaultMapBoxSetup: MapBoxSetup = {
-  token: token,
   url: url,
   attribution: attribution
 }

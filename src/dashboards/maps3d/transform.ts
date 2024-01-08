@@ -5,7 +5,7 @@ import {unScalePoint} from "../../lib/map";
 
 export const getStaticImageFromBbox = (bbox: BoundingBox): Promise<THREE.Texture> =>  {
   const host = 'https://api.mapbox.com/styles/v1'
-  const api = "sk.eyJ1IjoibWlsdmVydG9uIiwiYSI6ImNrenRhaWd3cTB6anIyd3BrZ3Jzc2czbHMifQ.FvHS5P4tdvx44VsETgedmg";
+  const api = import.meta.env.VITE_MB_KEY
   const username = 'mapbox'
   const style_id = 'satellite-v9'
   //const style_id = 'outdoors-v12'
@@ -30,10 +30,10 @@ export const getStaticImageFromBbox = (bbox: BoundingBox): Promise<THREE.Texture
 }
 export const getStaticImage4X = (bbox: BoundingBox): Promise<THREE.CanvasTexture> =>  {
   const host = 'https://api.mapbox.com/styles/v1'
-  const api = "sk.eyJ1IjoibWlsdmVydG9uIiwiYSI6ImNrenRhaWd3cTB6anIyd3BrZ3Jzc2czbHMifQ.FvHS5P4tdvx44VsETgedmg";
+  const api = import.meta.env.VITE_MB_KEY
   const username = 'mapbox'
   const style_id = 'satellite-v9'
-  const style = `@2x?access_token=${api}&attribution=false&logo=false`
+  const style = `@2x?access_token=${api}&attribution=true&logo=true`
 
 
   let smallerBoxWidth = bbox.width / 2;
@@ -91,7 +91,7 @@ export const getStaticImage4X = (bbox: BoundingBox): Promise<THREE.CanvasTexture
 
 export const getStaticImages3By3FromBbox = (bbox: BoundingBox): Promise<THREE.CanvasTexture> =>  {
   const host = 'https://api.mapbox.com/styles/v1'
-  const api = "sk.eyJ1IjoibWlsdmVydG9uIiwiYSI6ImNrenRhaWd3cTB6anIyd3BrZ3Jzc2czbHMifQ.FvHS5P4tdvx44VsETgedmg";
+  const api = import.meta.env.VITE_MB_KEY
   const username = 'mapbox'
   const style_id = 'satellite-v9'
 
@@ -224,7 +224,7 @@ function splitBoundingBoxIntoFour(bbox: BoundingBox): GeoBoundingBox[] {
 }
 export const getStaticBingImageFromBbox = (bbox: BoundingBox): Promise<String> =>  {
   const host = 'https://dev.virtualearth.net/REST/v1/Imagery/Map/Aerial/'
-  const api = 'AlPmMm3gPRMpcnGAAmq6MbxIGuhXmPDYL88LkdMxh4A6EsJZf_RKk0Lhh6okXUgy';
+  const api = import.meta.env.VITE_BI_KEY;
 
   let [newWidth, newHeight] = fitDimensions(bbox.width, bbox.height, 1, 2048, 1, 2048)
   const centerLat = (bbox.max_y + bbox.min_y) / 2
@@ -261,7 +261,7 @@ export interface ISatelliteElevation {
 }
 export const getStaticSatelliteElevation = (bbox: BoundingBox): Promise<ISatelliteElevation> =>  {
  return new Promise((resolve, reject) => {
-   const apiKey = 'AlPmMm3gPRMpcnGAAmq6MbxIGuhXmPDYL88LkdMxh4A6EsJZf_RKk0Lhh6okXUgy'
+   const apiKey = import.meta.env.VITE_BI_KEY
    const boundingBox = {
      southLatitude: bbox.min_y,
      westLongitude: bbox.min_x,
@@ -296,7 +296,7 @@ export const getStaticSatelliteElevation = (bbox: BoundingBox): Promise<ISatelli
 }
 
 export const getStaticElevationForEmptyPoints = (bbox: BoundingBox, elevation:number[], min:number, grid: GridCell[]): Promise<[]> =>  {
-  const apiKey = 'AlPmMm3gPRMpcnGAAmq6MbxIGuhXmPDYL88LkdMxh4A6EsJZf_RKk0Lhh6okXUgy'
+  const apiKey = import.meta.env.VITE_BI_KEY
   let segments: any[] = []
   let currentIdx = 0;
   let currentSegment = []

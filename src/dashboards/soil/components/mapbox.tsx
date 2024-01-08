@@ -127,7 +127,7 @@ const MapBox = ({updateNumber,className,points,mapBoxSetup, showZoomControl,scro
         <TileLayer
           // @ts-ignore
           attribution={mapBoxSetup.attribution}
-          url={mapBoxSetup.url}
+          url={mapBoxSetup.url(import.meta.env.VITE_MB_KEY)}
           keepBuffer={100} />
         <BoundaryOverlay key={keyBase + 'bo'} show={showBoundaries} boundary={selectedBoundary}/>
         <MapOverlay overlay={urlData} mapVariant={selectedMapVariant} bbox={bbox} selectedBoundary={selectedBoundary} opacity={mapOpacity} />

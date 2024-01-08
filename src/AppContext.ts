@@ -19,10 +19,11 @@ let mainNav = [
   {name: 'Soil', href: '/soil', icon: SunIcon, current: false, description: ""},
   {name: 'Photos', href: '/photos', icon: PhotoIcon, current: false, description: ""},
   {name: 'Stats', href: '/stats', icon: ChartBarIcon, current: false, description: ""},
+  {name: '3D', href: '/maps3d', icon: CubeIcon, current: false, description: ""},
   // {name: 'Import', href: '/import', icon: ArrowUpTrayIcon, current: false, description: ""},
   {name: 'Export', href: '/export', icon: ArrowDownTrayIcon, current: false, description: ""},
   // {name: 'Audit', href: '/audit', icon: ShieldCheckIcon, current: false, description: ""},
-  {name: '3D', href: '/maps3d', icon: CubeIcon, current: false, description: ""},
+
 ]
 
 // const archivePath = window.electron.archive();

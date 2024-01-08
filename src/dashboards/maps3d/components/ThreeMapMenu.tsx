@@ -27,7 +27,7 @@ export const ThreeMapMenu = (props: ThreeMapInterface) => {
 
           <div className="flex space-x-2 mr-2">
             {
-              props.Machines.length === 0 ? null :
+              props.Machines?.length === 0 ? null :
                 <>
                   <p>Status: </p>
                   {props.Machines}
