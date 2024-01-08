@@ -68,23 +68,10 @@ export const HeightLayer = (props: { simpleMode: any; }) => {
   }, [meshResolution, weight, samples, radius, scalePercentage])
 
   useEffect(() => {
-    let loading = [MeshStatus.loading, SatelliteStatus.loading]
-    loading[0] = GetHeightStatus(threeJsHeightMachine)
-    loading[1] = GetSatelliteStatus(threeJsSatelliteMachine)
-    setMachinesLoading(loading)
-    if(threeJsHeightMachine.service.value === LoadingState.Loading) {
-      setIsLoading(true)
-    }
-    if(threeJsSatelliteMachine.service.value === LoadingState.Loading) {
-      setIsLoading(true)
-    }
-
-    if (threeJsHeightMachine.service.value === LoadingState.Loaded && threeJsSatelliteMachine.service.value === LoadingState.Loaded) {
-      return setIsLoading(false)
-    }
-    if(threeJsHeightMachine.service.value === LoadingState.Empty || threeJsSatelliteMachine.service.value === LoadingState.Empty) {
-      return setIsLoading(false)
-    }
+    const meshLoading = GetHeightStatus(threeJsHeightMachine)
+    const satLoading= GetSatelliteStatus(threeJsSatelliteMachine)
+    console.log("FAFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF", meshLoading, satLoading)
+    return setMachinesLoading([meshLoading[0], satLoading[0]])
   }, [satTime, dataTime])
 
   const heightSatellite = () => {

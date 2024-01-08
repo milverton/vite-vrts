@@ -9,19 +9,15 @@ export const UpdateMeshWaterOpacity = (newThree: ThreeJsComponent) => {
     return
   }
   // ---------- UPDATE WATER OPACITY
-  // @ts-ignore
   newThree.blockMesh.material[WaterIdx].opacity = threeJsStore.userSettings.WaterOpacity
-  // @ts-ignore
   newThree.blockMesh.material[WaterIdx].needsUpdate = true
 }
 export const UpdateMeshWithInterpolatedMap = (newThree: ThreeJsComponent, interpolatedUrlPrivate: string) => {
 
   if(threeJsStore.userSettings.InterpolatedUrl !== ""){
     if(newThree.blockMesh == null) return;
-    let material = newThree.blockMesh.material
-    // @ts-ignore
+    const material:THREE.Material[] = newThree.blockMesh.material as THREE.Material[]
     material[InterpolatedIdx].opacity = threeJsStore.userSettings.Opacity
-    // @ts-ignore
     material[InterpolatedIdx].needsUpdate = true
   }
   if(interpolatedUrlPrivate !== threeJsStore.userSettings.InterpolatedUrl){
@@ -40,8 +36,9 @@ export const UpdateMeshWithWaterFlow = (newThree: ThreeJsComponent) => {
   MeshMaterials.GetAllMaterialsUpdated().then((materials) => {
     if(newThree.blockMesh == null) return;
     newThree.blockMesh.material = materials
-    // @ts-ignore
-    newThree.blockMesh.material.needsUpdate = true
+    for(let i = 0; i < newThree.blockMesh.material.length; i++){
+      newThree.blockMesh.material[i].needsUpdate = true
+    }
   })
 }
 
@@ -49,7 +46,7 @@ export const UpdateMeshWithWaterFlow = (newThree: ThreeJsComponent) => {
 export const LoadMesh = (newThree: ThreeJsComponent) => {
   return new Promise<string>((resolve, reject) => {
     const bbox = boundaryStore.bbox
-    let interpolatedPoints = threeJsStore.basicState.InterpolatedData
+    const interpolatedPoints = threeJsStore.basicState.InterpolatedData
     let xColumn = threeJsStore.basicState.XColumn-1
     let yColumn = threeJsStore.basicState.YColumn-1
     if(xColumn <= 0 || yColumn <= 0){
@@ -57,7 +54,7 @@ export const LoadMesh = (newThree: ThreeJsComponent) => {
       yColumn = bbox.height / threeJsStore.userSettings.Resolution
     }
 
-    let geometry = new THREE.PlaneGeometry(bbox.width, bbox.height, xColumn, yColumn)
+    const geometry = new THREE.PlaneGeometry(bbox.width, bbox.height, xColumn, yColumn)
     // Just in case there is no elevation data
     if(interpolatedPoints.length === 0){
       for(let i = 0; i < geometry.attributes.position.count; i++){
@@ -71,6 +68,7 @@ export const LoadMesh = (newThree: ThreeJsComponent) => {
     geometry.computeVertexNormals()
     geometry.computeTangents()
     geometry.normalizeNormals()
+
     if (geometry.index !== null) {
       geometry.addGroup(0, geometry.index.count, 0)
       geometry.addGroup(0, geometry.index.count, 1)
@@ -79,8 +77,7 @@ export const LoadMesh = (newThree: ThreeJsComponent) => {
     geometry.attributes.position.needsUpdate = true
 
     MeshMaterials.GetAllMaterialsUpdated().then((materials) => {
-      // @ts-ignore
-      let mesh = newThree.CreateMesh(geometry, materials, bbox)
+      const mesh = newThree.CreateMesh(geometry, materials, bbox)
       newThree.AddMeshOutline(mesh ,bbox)
       resolve("Done")
     }).catch((err) => {
@@ -95,7 +92,7 @@ export const UpdateMeshWithScaledPositions = (newThree: ThreeJsComponent, square
   if(squaredHeight !== threeJsStore.userSettings.SquaredHeight
     && threeJsStore.basicState.InterpolatedData.length > 0){
     if(newThree.blockMesh == null) return;
-    let positionAttribute = newThree.blockMesh.geometry.getAttribute('position')
+    const positionAttribute = newThree.blockMesh.geometry.getAttribute('position')
     for (let i = 0; i < positionAttribute.count; i++) {
       positionAttribute.setZ(i, scaleHeight(threeJsStore.userSettings.SquaredHeight, threeJsStore.basicState.InterpolatedData[i]))
     }
@@ -110,16 +107,15 @@ export const UpdateBoundariesWithScaledPositions = (newThree: ThreeJsComponent, 
   if(forceRun || squaredHeight !== threeJsStore.userSettings.SquaredHeight){
     // console.log("RUNNING UpdateBoundariesWithScaledPositions IN FORCE RUN", threeJsStore.basicState.BoundaryElevationData)
     for(let lineIdx = 0; lineIdx < newThree.boundaries.length; lineIdx++){
-      let elevationData = threeJsStore.basicState.BoundaryElevationData?.values[lineIdx] as unknown as []
-      let line = newThree?.boundaries[lineIdx]
-      let linePositionAttribute = line?.geometry?.attributes?.position?.array
+      const elevationData = threeJsStore.basicState.BoundaryElevationData?.values[lineIdx] as unknown as []
+      const line = newThree?.boundaries[lineIdx]
+      const linePositionAttribute = line?.geometry?.attributes?.position?.array
       let pos = 0
       for (let i = 1; i < linePositionAttribute.length; i+=3) {
-        linePositionAttribute[i] = scaleHeight(threeJsStore.userSettings.SquaredHeight, elevationData[pos]) + BOUNDARY_HEIGHT_OFFSET
+        const elevationValue:number = pos >= elevationData.length ? 0 : elevationData[pos]
+        linePositionAttribute[i] = scaleHeight(threeJsStore.userSettings.SquaredHeight, elevationValue) + BOUNDARY_HEIGHT_OFFSET
         pos++
       }
-      // @ts-ignore
-      linePositionAttribute.needsUpdate = true
       line.geometry.attributes.position.needsUpdate = true;
     }
   }

@@ -23,7 +23,7 @@ networkBoundaryAllFieldsMachine.observer.subscribe({
         const meta = state.payload;
         if (meta === undefined || meta.uid === undefined) {
           networkBoundaryAllFieldsStore.error = "Meta is undefined";
-          networkBoundaryAllFieldsMachine.service.send(LoadingEvent.Failure );
+          networkBoundaryAllFieldsMachine.fail(`Meta is undefined`);
           return;
         }
         fetch(`http://localhost:3001/api/v1/boundary/all/vrts/${meta.uid}`)

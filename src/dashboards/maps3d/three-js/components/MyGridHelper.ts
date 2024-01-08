@@ -8,11 +8,9 @@ export class MyGridHelper {
   public mesh: LineSegments;
   public material: LineBasicMaterial;
   public geometry: BufferGeometry;
-  constructor( size = 10, divisions = 10, color1 = 0x444444, color2 = 0x888888 ) {
-
-    // @ts-ignore
+  constructor( size = 10, divisions = 10, color1:Color = new Color(0x000000), color2:Color = new Color(0x888888)) {
+    
     color1 = new Color( color1 );
-    // @ts-ignore
     color2 = new Color( color2 );
 
     const center = divisions / 2;
@@ -26,12 +24,12 @@ export class MyGridHelper {
       vertices.push( - halfSize, 0, k, halfSize, 0, k );
       vertices.push( k, 0, - halfSize, k, 0, halfSize );
 
-      const color = i === center ? color1 : color2 as any;
+      const color = i === center ? color1 : color2 as never;
 
-      color.toArray( colors, j ); j += 3;
-      color.toArray( colors, j ); j += 3;
-      color.toArray( colors, j ); j += 3;
-      color.toArray( colors, j ); j += 3;
+      color.toArray( colors as number[], j ); j += 3;
+      color.toArray( colors as number[], j ); j += 3;
+      color.toArray( colors as number[], j ); j += 3;
+      color.toArray( colors as number[], j ); j += 3;
     }
 
     const geometry = new BufferGeometry();
@@ -44,10 +42,8 @@ export class MyGridHelper {
     this.mesh = new LineSegments( geometry, material );
   }
 
-  public UpdateColors(color1 = 0x444444, color2 = 0x888888){
-    // @ts-ignore
+  public UpdateColors( color1:Color = new Color(0x000000), color2:Color = new Color(0x888888)){
     color1 = new Color( color1 );
-    // @ts-ignore
     color2 = new Color( color2 );
 
     const center = this.geometry.attributes.position.count / 2;
@@ -55,12 +51,12 @@ export class MyGridHelper {
 
     for ( let i = 0, j = 0; i <= center; i ++ ) {
 
-      const color = i === center ? color1 : color2 as any;
+      const color = i === center ? color1 : color2 as Color;
 
-      color.toArray( colors, j ); j += 3;
-      color.toArray( colors, j ); j += 3;
-      color.toArray( colors, j ); j += 3;
-      color.toArray( colors, j ); j += 3;
+      color.toArray( colors as number[], j ); j += 3;
+      color.toArray( colors as number[], j ); j += 3;
+      color.toArray( colors as number[], j ); j += 3;
+      color.toArray( colors as number[], j ); j += 3;
 
     }
     this.geometry.setAttribute( 'color', new Float32BufferAttribute( colors, 3 ) );

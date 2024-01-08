@@ -71,7 +71,7 @@ const Maps3D = () => {
   const [sunAngle, setSunAngle] = useState(threeJsStore.sceneSettings.sunAngle)
   const [sunHeight, setSunHeight] = useState(threeJsStore.sceneSettings.sunHeight)
 
-  const [machinesLoading, setMachinesLoading] = useState([])
+  const [machinesLoading, setMachinesLoading] = useState([] as Element[])
   const emptySelection = {menuName: "NA", menuType: -1}
   const [selectedMap, setSelectedMap] = useState(emptySelection)
   const [simpleMode, setSimpleMode] = useState(true)
@@ -93,23 +93,10 @@ const Maps3D = () => {
   }
 
   useEffect(() => {
-    let loading = [WaterStatus.loading]
-    loading[0] = GetWaterStatus(threeJsWaterFlowMachine)
+    const waterLoading = GetWaterStatus(threeJsWaterFlowMachine)
 
-    if (threeJsWaterFlowMachine.value === 'Empty') {
-      setIsSimulating(false)
-    }
-    // @ts-ignore
-
-    if (threeJsWaterFlowMachine.value === 'Loading') {
-      setIsSimulating(true)
-    }
-    if (threeJsWaterFlowMachine.value === 'Loaded') {
-      setIsSimulating(false)
-    }
-    // @ts-ignore
-    setMachinesLoading(loading)
-
+    setIsSimulating(waterLoading[1])
+    return setMachinesLoading([waterLoading[0]])
   }, [waterTime, waterSimTime])
 
   useEffect(() => {
@@ -175,9 +162,8 @@ const Maps3D = () => {
         waterSamples: waterSamples,
         waterRadius: waterRadius,
     })
-    let loading = [WaterStatus.loading]
-    loading[0] = GetWaterStatus(threeJsWaterFlowMachine)
-    // @ts-ignore
+    const loading = GetWaterStatus(threeJsWaterFlowMachine)[0]
+
     setMachinesLoading(loading)
     return setIsSimulating(true)
   }
@@ -216,10 +202,10 @@ const Maps3D = () => {
   }, [satelliteTime, heightTime])
   useEffect(() => {
 
+    if(!threeJs.current) return
+
     return setCanvasSize([
-      // @ts-ignore
       threeJs.current.clientWidth,
-      // @ts-ignore
       threeJs.current.clientHeight
     ])
   }, [windowSize])
@@ -246,7 +232,7 @@ const Maps3D = () => {
         className="flex overflow-hidden flex-col justify-between text-gray-700 h-full w-screen relative space-x-4">
         <header className="flex bg-gray-100 h-20 w-screen min-h-[75px] top-16 sticky">
           <button className="flex items-center justify-center bg-gray-100 h-full w-[4.5rem]"
-                  onClick={(_) => setShowMapLayers(!showMapLayers)}>{
+                  onClick={() => setShowMapLayers(!showMapLayers)}>{
             showMapLayers ? <Bars3BottomLeftIcon
                 className="flex bg-gray-50 hover:bg-gray-200 p-5 w-[4.5rem] drop-shadow-md h-full justify-center"/> :
               <Bars3Icon className="flex hover:bg-gray-200 p-5 w-[4.5rem] h-full justify-center"/>
@@ -267,7 +253,7 @@ const Maps3D = () => {
                               SetState={setShowGeneral}/>
                 <button
                   className="p-2 my-2 w-[8rem] border-l-[1px] border-b-[1px] border-gray-200 bg-gray-100 hover:bg-gray-200"
-                  onClick={_ => setSimpleMode(!simpleMode)}>
+                  onClick={() => setSimpleMode(!simpleMode)}>
                   <legend className="text-gray-700 text-sm font-medium">{simpleMode ? "Simple" : "Advanced"}</legend>
                 </button>
               </div>
@@ -275,12 +261,12 @@ const Maps3D = () => {
                 showGeneral ?
                   <div className="w-full mt-4">
                     <div className="flex flex-row m-0 w-full justify-between">
-                      <div className="lbl-ring-outer mb-1 w-1/2">
-                        <label htmlFor="map" className="lbl-sm lbl-ring-inner">Map Variant</label>
-                        <StringSelect name={'map'} className={'text-xs w-full rounded border-gray-200'} menu={soilUIStore.toolbarState.mapVariants}
-                                      selected={mapVariant} setSelected={setMapVariant}/>
-                      </div>
-                      <div className="lbl-ring-outer mb-1 w-52">
+                      {/*<div className="lbl-ring-outer mb-1 w-1/2">*/}
+                      {/*  <label htmlFor="map" className="lbl-sm lbl-ring-inner">Map Variant</label>*/}
+                      {/*  <StringSelect name={'map'} className={'text-xs w-full rounded border-gray-200'} menu={soilUIStore.toolbarState.mapVariants}*/}
+                      {/*                selected={mapVariant} setSelected={setMapVariant}/>*/}
+                      {/*</div>*/}
+                      <div className="lbl-ring-outer mb-1 w-full">
                         <label htmlFor="map" className="lbl-sm lbl-ring-inner">Map</label>
                         <StringSelect name={'map'} className={'text-xs w-full rounded border-gray-200'} menu={mapMenu}
                                       selected={selectedMap} setSelected={setSelectedMap}/>
@@ -297,7 +283,7 @@ const Maps3D = () => {
                         type="checkbox"
                         className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                         checked={showBoundaries}
-                        onChange={_ => {
+                        onChange={() => {
                           return setShowBoundaries(!showBoundaries)
                         }}
                       />
@@ -320,7 +306,7 @@ const Maps3D = () => {
                           type="checkbox"
                           className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                           checked={showSatellite}
-                          onChange={_ => {
+                          onChange={() => {
                             setShowSatellite(!showSatellite)
                           }}
                         />

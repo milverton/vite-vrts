@@ -62,10 +62,10 @@ const SceneSettings: ISceneSettings = {
   sunHeight: 30,
 }
 const InitialUserSettings: UserSettings = {
-  Weight: 0.015,
+  Weight: 0.05,
   Resolution: 15,
   Radius: 50,
-  Samples: 50,
+  Samples: 30,
   SquaredHeight: 5,
   ShowSatellite: true,
   InterpolatedUrl: "",
@@ -92,8 +92,8 @@ const InitialThreeJsStore: ThreeJsStoreState = {
 
 interface InterpolationResult {
   values: [],
-  x_column: any,
-  y_column: any,
+  x_column: number,
+  y_column: number,
 }
 
 export interface BoundaryElevationDto {
@@ -202,27 +202,26 @@ threeJsHeightMachine.observer.subscribe({
           break
         }
 
-        let payload = state.payload
-
+        // eslint-disable-next-line no-case-declarations
         const data = {
-          dealer: payload.dealer,
-          client: payload.client,
-          block: payload.block,
-          season: Number.parseInt(payload.season),
-          resolution: payload.resolution,
-          interpolation_weight: payload.weight,
-          max_samples: payload.samples,
+          dealer: state.payload.dealer,
+          client: state.payload.client,
+          block: state.payload.block,
+          season: Number.parseInt(state.payload.season),
+          resolution: state.payload.resolution,
+          interpolation_weight: state.payload.weight,
+          max_samples: state.payload.samples,
           type: "em",
           status: "clean",
           column: 2,
-          radius: payload.radius,
+          radius: state.payload.radius,
         };
 
-        const stringifyData = JSON.stringify(data)
+        const stringifyData:string = JSON.stringify(data)
         // const uri = encodeURI(stringifyData)
-        const uri = window.btoa(stringifyData)
+        const uri:string = window.btoa(stringifyData)
 
-        const url = `http://localhost:3001/api/v1/map/elevation-map?uid=${uri}`;
+        const url:string = `http://localhost:3001/api/v1/map/elevation-map?uid=${uri}`;
         fetch(url, {
           method: 'GET',
           headers: {
@@ -250,7 +249,7 @@ threeJsHeightMachine.observer.subscribe({
             return value - min
           })
           // console.log("BEFORE FORMAT: ", boundaries)
-          let boundaryData = convertBoundariesToLines(boundaryStore.bbox, boundaryStore.boundary, boundaries, min)
+          const boundaryData = convertBoundariesToLines(boundaryStore.bbox, boundaryStore.boundary, boundaries, min)
           // console.log("FORMATTED BOUNDARIES INTO LINES", boundaryData.values)
           let maxHeight = -100000
           for (let i = 0; i < interpolatedArray.length; i++) {

@@ -39,7 +39,7 @@ export const ThreeJs = ({width, height, className} : {width: number, height: num
   // SCENE SETTINGS ----
   useEffect(() => {
     try{
-      let canvas = document.getElementById("three-js")
+      const canvas:HTMLCanvasElement = document.getElementById("three-js")
       newThree.UpdateWithRenderer(width, height, canvas)
 
       setThreeJs(newThree)
@@ -56,7 +56,7 @@ export const ThreeJs = ({width, height, className} : {width: number, height: num
 
   useEffect(() => {
     const animate = () => {
-      // @ts-ignore
+      if(newThree.camera === undefined) return
       newThree.renderer?.render(newThree.scene, newThree.camera)
       requestAnimationFrame(animate)
       newThree.controls?.update()
@@ -65,7 +65,7 @@ export const ThreeJs = ({width, height, className} : {width: number, height: num
   }, [newThree])
 
   useEffect(() => {
-    // @ts-ignore
+    if(newThree.controls === undefined) return
     newThree.controls.autoRotateSpeed = threeJsStore.sceneSettings.autoRotateSpeed
     newThree.UpdateSun(threeJsStore.sceneSettings.sunAngle, threeJsStore.sceneSettings.sunHeight)
   },[sceneTime])

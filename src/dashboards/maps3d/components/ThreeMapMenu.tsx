@@ -15,7 +15,7 @@ export const ThreeMapMenu = (props: ThreeMapInterface) => {
 
   return (
     <div className={'' + props.class}>
-      <button onClick={_ => props.SetState(!props.State)} className={classNames('my-2 w-full bg-gray-100 hover:bg-gray-200 border-b-[1px] border-gray-200')}>
+      <button onClick={() => props.SetState(!props.State)} className={classNames('my-2 w-full bg-gray-100 hover:bg-gray-200 border-b-[1px] border-gray-200')}>
         <div className="flex py-2 align-middle justify-between">
           <div className='flex ml-2 space-x-2'>
             { props.State ?
