@@ -20,7 +20,7 @@ import {
 import {boundaryMachine} from "../../lib/stores/boundary/machines";
 import {LoadButton} from "../../components/loading-button/view";
 import {MachinesHaveLoaded} from "./three-js/transform";
-import {GetWaterStatus, WaterStatus} from "./three-js/components/MachineStatusVisuals";
+import {GetWaterStatus} from "./three-js/components/MachineStatusVisuals";
 import {boundaryStore} from "../../lib/stores/boundary/store";
 import {ThreeMapMenu} from "./components/ThreeMapMenu";
 import {HeightLayer} from "../map/components/height-layer";
@@ -71,13 +71,13 @@ const Maps3D = () => {
   const [sunAngle, setSunAngle] = useState(threeJsStore.sceneSettings.sunAngle)
   const [sunHeight, setSunHeight] = useState(threeJsStore.sceneSettings.sunHeight)
 
-  const [machinesLoading, setMachinesLoading] = useState([] as Element[])
+  const [machinesLoading, setMachinesLoading] = useState<any>()
   const emptySelection = {menuName: "NA", menuType: -1}
   const [selectedMap, setSelectedMap] = useState(emptySelection)
   const [simpleMode, setSimpleMode] = useState(true)
 
 
-  const [mapVariant, setMapVariant] = useState(soilUIStore.toolbarState.mapVariant)
+  const [mapVariant, __] = useState(soilUIStore.toolbarState.mapVariant)
 
 
   useEffect(() => {

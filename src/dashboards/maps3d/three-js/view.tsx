@@ -39,8 +39,12 @@ export const ThreeJs = ({width, height, className} : {width: number, height: num
   // SCENE SETTINGS ----
   useEffect(() => {
     try{
-      const canvas:HTMLCanvasElement = document.getElementById("three-js")
-      newThree.UpdateWithRenderer(width, height, canvas)
+      const canvas:HTMLElement | null = document.getElementById("three-js")
+      if(canvas === null) {
+        console.error(`Could not find canvas element`)
+        return () => {}
+      }
+      newThree.UpdateWithRenderer(width, height, canvas as HTMLCanvasElement)
 
       setThreeJs(newThree)
     } catch (e) {

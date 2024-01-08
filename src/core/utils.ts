@@ -7,7 +7,7 @@ export interface ActivityChannelModel {
   status: 'start' | 'stop'
   timeout: number
 }
-const actionMap = new Map<string, {timestamp: number, timeout: NodeJS.Timeout}>();
+const actionMap = new Map<string, {timestamp: number, timeout: any}>();
 
 const _startAction = (name: string, timeout: number): () => void =>  {
   const count = actionMap.size;

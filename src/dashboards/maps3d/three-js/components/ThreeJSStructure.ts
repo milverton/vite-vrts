@@ -49,7 +49,7 @@ export class ThreeJsComponent {
     this.scene = scene
   }
 
-  public UpdateWithRenderer = (width: number, height: number, canvas: HTMLCanvasElement) => {
+  public UpdateWithRenderer = (width: number, height: number, canvas: HTMLCanvasElement | undefined) => {
     // RENDERER SETTINGS ----
 
     THREE.ColorManagement.enabled = true
@@ -130,7 +130,7 @@ export class ThreeJsComponent {
     const newColor = new THREE.Color().lerpColors(min, max, value)
 
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-expect-error
+
     this.gridHelper.UpdateColors(newColor,newColor)
 
     if(opacityFactor != undefined && this.gridHelper != null){

@@ -9,7 +9,9 @@ export const UpdateMeshWaterOpacity = (newThree: ThreeJsComponent) => {
     return
   }
   // ---------- UPDATE WATER OPACITY
+  // @ts-ignore
   newThree.blockMesh.material[WaterIdx].opacity = threeJsStore.userSettings.WaterOpacity
+  // @ts-ignore
   newThree.blockMesh.material[WaterIdx].needsUpdate = true
 }
 export const UpdateMeshWithInterpolatedMap = (newThree: ThreeJsComponent, interpolatedUrlPrivate: string) => {

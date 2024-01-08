@@ -7,7 +7,7 @@ import {MetaRecordFormat} from "../../../core/meta";
 
 
 export const ArchiveDrop = (_:DropFileProps) => {
-  const formatMenu = [{menuName: 'Raw EM/GR', menuType: MetaRecordFormat.Emgr}]
+  const formatMenu = [{menuName: 'Raw EM/GR', menuType: MetaRecordFormat.EmGr1s}]
 
   const [file, setFile] = useState<IFile[]>([])
   const [format, setFormat] = useState(formatMenu[0])

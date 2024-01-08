@@ -1,4 +1,4 @@
-import {LoadingEvent, LoadingState, useLoadMachineState,} from "../../../core/machine";
+import {LoadingEvent,useLoadMachineState,} from "../../../core/machine";
 import {metaStore} from "../../../lib/stores/meta/store";
 import React, {useEffect, useRef, useState} from "react";
 import {NumberInput} from "../../../components/number-input/view";

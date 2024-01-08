@@ -29,7 +29,23 @@ export const prepareUpload = (mime: string, data: string, meta?:ImportMetaModel)
   })
 }
 
-
+function arrayBufferToBase64(buffer: ArrayBuffer): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const blob = new Blob([buffer], { type: 'application/octet-stream' });
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const dataUrl = reader.result;
+      if (typeof dataUrl !== 'string') {
+        reject(new Error('Invalid data URL.'));
+        return;
+      }
+      const base64 = dataUrl.split(',')[1];
+      resolve(base64);
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(blob);
+  });
+}
 export const readDroppedFileHandler = (e: any): Promise<{ data: string, mime: string }> => {
   e.preventDefault();
   e.stopPropagation();
@@ -42,9 +58,11 @@ export const readDroppedFileHandler = (e: any): Promise<{ data: string, mime: st
       const reader = new FileReader();
       reader.onload = function (event) {
         const buffer = event.target?.result;
-        const base64String = Buffer.from(buffer as ArrayBuffer).toString('base64');
+        // const base64String = Buffer.from(buffer as ArrayBuffer).toString('base64');
+        arrayBufferToBase64(buffer as ArrayBuffer).then((b: string) => {
+          resolve({data: b, mime: fileType})
+        })
 
-        resolve({data: base64String, mime: fileType})
       }
 
       reader.onerror = function (event) {
@@ -69,9 +87,11 @@ export const readFileHandler = (file: IFile): Promise<{ data: string, mime: stri
       const reader = new FileReader();
       reader.onload = function (event) {
         const buffer = event.target?.result;
-        const base64String = Buffer.from(buffer as ArrayBuffer).toString('base64');
-
-        resolve({data: base64String, mime: fileType})
+        // const base64String = Buffer.from(buffer as ArrayBuffer).toString('base64');
+        arrayBufferToBase64(buffer as ArrayBuffer).then((b: string) => {
+          resolve({data: b, mime: fileType})
+        })
+        // resolve({data: base64String, mime: fileType})
       }
 
       reader.onerror = function (event) {

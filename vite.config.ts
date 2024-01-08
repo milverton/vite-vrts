@@ -6,4 +6,7 @@ import tailwindcss from 'tailwindcss';
 export default defineConfig({
   // @ts-ignore
   plugins: [react(), tailwindcss()],
+  build: {
+    outDir: 'wwwroot', // sets the output directory for the build
+  },
 })
