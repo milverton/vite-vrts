@@ -11,7 +11,7 @@ export const getStaticImageFromBbox = (bbox: BoundingBox): Promise<THREE.Texture
   //const style_id = 'outdoors-v12'
 
   let [newWidth, newHeight] = fitDimensions(bbox.width, bbox.height, 1, 1280, 1, 1280)
-  const url = `${host}/${username}/${style_id}/static/[${bbox.min_x},${bbox.min_y},${bbox.max_x},${bbox.max_y}]/${newWidth}x${newHeight}@2x?access_token=${api}&attribution=false&logo=false`
+  const url = `${host}/${username}/${style_id}/static/[${bbox.min_x},${bbox.min_y},${bbox.max_x},${bbox.max_y}]/${newWidth}x${newHeight}@2x?access_token=${api}&attribution=true&logo=true`
   let textureLoader = new THREE.TextureLoader()
 
   return new Promise<THREE.Texture>((resolve, reject) => {

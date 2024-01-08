@@ -14,11 +14,12 @@ import {BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Cell} from 'rechart
 import {round} from "../../lib/stats";
 import {Schema} from "../../core/meta";
 import {MenuProps} from "../../components/string-select/model.tsx";
+import {ChartBarIcon, InformationCircleIcon} from "@heroicons/react/24/outline";
 
-const ToggleButton = (props: { setSelected: (arg0: boolean) => void; selected: any; label: string; }) => {
+const ToggleButton = (props: { setSelected: (arg0: boolean) => void; selected: any; label: string; className:string }) => {
   return (
     <button onClick={() => props.setSelected(!props.selected)} className={classNames(
-      "p-2 border-1 text-center rounded text-sm",
+      "p-2 border-1 text-center rounded text-sm", props.className,
       !props.selected ? "border-blue-500 bg-white text-blue-500 shadow-inner" : "text-white bg-blue-500 border-blue-500 shadow-md")}>
       {props.selected ? "Hide " + props.label : "Show " + props.label}
     </button>
@@ -32,6 +33,7 @@ interface HomePaletteProps {
   setSelected: (value: boolean) => void;
   name: string;
   value: string;
+  className:string;
 }
 
 const RadioStyleSelector: React.FC<HomePaletteProps> = (props: HomePaletteProps) => {
@@ -41,10 +43,10 @@ const RadioStyleSelector: React.FC<HomePaletteProps> = (props: HomePaletteProps)
   }
 
   return (
-    <div className='flex'>
+    <div className={classNames('flex items-end', props.className)}>
       <input
         type='radio'
-        className='mr-2'
+        className='mr-2 mb-[3px]'
         name={props.name}
         value={props.value}
         checked={props.selected}
@@ -289,35 +291,55 @@ const HomeMap = () => {
 
     <div className="w-full flex-col h-full flex items-center justify-start">
       <div className="min-h-[4rem]"></div>
-      <div className="flex flex-row w-full bg-gray-50 p-4">
-        <div className="flex w-1/6 flex-col space-y-4">
+      <div className="flex flex-row w-full bg-gray-50 p-4 ">
+        <div className="flex w-1/6 flex-col space-y-4 min-w-[300px]">
           <h1
             className="text-xl text-secondary text-center">{client.isJust ? client.value.client() : "No Client Selected"}</h1>
-          <ToggleButton label='Points' selected={soilUIStore.toolbarState.showPoints} setSelected={setShowPoints}/>
-          <ToggleButton label='Boundaries' selected={soilUIStore.toolbarState.showBoundaries}
-                        setSelected={setShowBoundaries}/>
+          <div className="flex space-x-2">
+            <button
+              className={classNames('btn-base  flex items-center justify-center w-1/2', tabChoice.menuName === tabs[0].menuName ? "bg-blue-500 text-white" : "bg-white text-gray-500")}
+              onClick={() => setTabChoice(tabs[0])}>
+              <ChartBarIcon className={"mr-2 h-5 inline"}/>
+              Chart
+            </button>
+            <button
+              className={classNames('btn-base flex items-center justify-center w-1/2', tabChoice.menuName === tabs[1].menuName ? "bg-green-500 text-white" : "bg-white text-gray-500")}
+              onClick={() => setTabChoice(tabs[1])}>
+              <InformationCircleIcon className={"mr-2 h-5 inline"}/>
+              Info
+            </button>
+          </div>
 
-          <div className='bg-gray-100'>
-            <div className='flex justify-between flex-col'>
-              { mapVariants.map((mapVariant: any) => {
+          <div className='bg-gray-100 p-4 rounded border-1'>
+            <div className='flex justify-between flex-col space-y-3'>
+              <StringSelectorControl menu={mapMenu} selected={map} setSelected={(e) => {
+                setMap(e)
+              }}/>
+              {mapVariants.map((mapVariant: any) => {
                 return (
-                  <RadioStyleSelector key={mapVariant.menuName} name="map-type" value={mapVariant.menuType} title={mapVariant.menuName}
+                  <RadioStyleSelector key={mapVariant.menuName} name="map-type" value={mapVariant.menuType}
+                                      title={mapVariant.menuName}
                                       setSelected={() => setMapVariant(mapVariant)}
-                                      selected={mapVariant.menuType === selectedMapVariant.menuType}/>
+                                      selected={mapVariant.menuType === selectedMapVariant.menuType}
+                                      className={"ml-1"}/>
                 )
               })
 
               }
+
+              <div className="flex justify-between space-x-2 pt-2 w-full">
+                <ToggleButton className={"w-full"} label='Points' selected={soilUIStore.toolbarState.showPoints}
+                              setSelected={setShowPoints}/>
+                <ToggleButton className={"w-full"} label='Boundaries' selected={soilUIStore.toolbarState.showBoundaries}
+                              setSelected={setShowBoundaries}/>
+              </div>
             </div>
-            <StringSelectorControl menu={mapMenu} selected={map} setSelected={(e) => {
-              setMap(e)
-            }}/>
+
           </div>
           {/*<hr/>*/}
           {/*<StringSelectorControl label="Map Size" menu={MapSize} selected={mapSize} setSelected={(e) => setMapSize(e.menuType)} />*/}
           <div>
-            <button className="btn btn-blue w-1/2" onClick={() => setTabChoice(tabs[0])}>Chart</button>
-            <button className="btn btn-green w-1/2" onClick={() => setTabChoice(tabs[1])}>Info</button>
+
 
             {/*{tabs.map((mapVariant: any) => {*/}
             {/*  return (*/}
@@ -333,16 +355,18 @@ const HomeMap = () => {
         {/*  <h1 className="text-sm text-gray-500 mt-4">{schema?.description} ({schema?.unit_abbreviation})</h1>*/}
         {/*</div>*/}
 
+        <div className="flex flex-col justify-center w-full">
+          {
+            meta != undefined && tabChoice.menuType === 'chart' ?
+              <HorizontalBarChart data={histogram} colors={palettes} width={width}/> : null
+          }
 
-        {
-          meta != undefined && tabChoice.menuType === 'chart' ?
-            <HorizontalBarChart data={histogram} colors={palettes} width={width}/>: null
-        }
+          {
+            meta != undefined && tabChoice.menuType === 'data' ?
+              <DataCard schema={schema} bins={bins} meta={meta} interpolationParams={interpolationParams}/> : null
+          }
+        </div>
 
-        {
-          meta != undefined && tabChoice.menuType === 'data' ?
-            <DataCard schema={schema} bins={bins} meta={meta} interpolationParams={interpolationParams}/> : null
-        }
 
 
       </div>
