@@ -24,7 +24,7 @@ networkPingMachine.observer.subscribe({
         break;
       case LoadingEvent.Update:
         // Fetch data from /api/v1/ping
-        fetch('http://localhost:3001/api/v1/core/check')
+        fetch('/api/v1/core/check')
           .then(response => {
             if (!response.ok) {
               // console.warn(response)

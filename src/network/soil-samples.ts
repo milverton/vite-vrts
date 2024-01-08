@@ -33,7 +33,7 @@ networkSoilSamplesMachine.observer.subscribe({
           return;
         }
         let promises = metas.map((meta:Meta) => {
-          return fetch(`http://localhost:3001/api/v1/data/csv/${meta.uid}`, {
+          return fetch(`/api/v1/data/csv/${meta.uid}`, {
             method: 'GET',
             headers: {
               'Content-Type': 'application/json',

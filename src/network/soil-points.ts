@@ -32,7 +32,7 @@ networkSoilPointsMachine.observer.subscribe({
           return
         }
 
-        fetch(`http://localhost:3001/api/v1/data/csv/${meta.uid}`, {
+        fetch(`/api/v1/data/csv/${meta.uid}`, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',

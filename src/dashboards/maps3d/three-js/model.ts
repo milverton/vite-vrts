@@ -84,7 +84,7 @@ export class GridCell {
 
 
 export const FetchRequests = {
-    initialize: {url: "http://localhost:3001/api/v1/core/check", method: "GET"},
+    initialize: {url: "/api/v1/core/check", method: "GET"},
 }
 
 export interface MapLayerSelection {

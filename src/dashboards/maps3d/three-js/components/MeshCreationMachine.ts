@@ -221,7 +221,7 @@ threeJsHeightMachine.observer.subscribe({
         // const uri = encodeURI(stringifyData)
         const uri:string = window.btoa(stringifyData)
 
-        const url:string = `http://localhost:3001/api/v1/map/elevation-map?uid=${uri}`;
+        const url:string = `/api/v1/map/elevation-map?uid=${uri}`;
         fetch(url, {
           method: 'GET',
           headers: {
@@ -420,7 +420,7 @@ threeJsWaterFlowMachine.observer.subscribe({
         // const uri = encodeURI(stringifyData)
         const uri = window.btoa(stringifyData)
 
-        const url = `http://localhost:3001/api/v1/map/water-sim?uid=${uri}`
+        const url = `/api/v1/map/water-sim?uid=${uri}`
         fetch(url, {
           method: 'GET',
           headers: {

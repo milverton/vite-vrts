@@ -26,7 +26,7 @@ networkBoundaryAllFieldsMachine.observer.subscribe({
           networkBoundaryAllFieldsMachine.fail(`Meta is undefined`);
           return;
         }
-        fetch(`http://localhost:3001/api/v1/boundary/all/vrts/${meta.uid}`)
+        fetch(`/api/v1/boundary/all/vrts/${meta.uid}`)
           .then(response => {
             if (!response.ok) {
               // console.error(response)

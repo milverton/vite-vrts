@@ -85,6 +85,6 @@ export const resetSoil = (): SoilState => {
   }
 }
 
-export const MAP_URL = 'http://localhost:3001/api/v1/map/image'
-export const PHOTO_URL = 'http://localhost:3001/api/v1/photo/soil'
-export const UPLOAD_URL = 'http://localhost:3001/api/v1/upload'
+export const MAP_URL = '/api/v1/map/image'
+export const PHOTO_URL = '/api/v1/photo/soil'
+export const UPLOAD_URL = '/api/v1/upload'
