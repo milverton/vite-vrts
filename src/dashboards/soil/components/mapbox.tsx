@@ -1,5 +1,5 @@
 import {useEffect} from "react";
-import {AttributionControl, ImageOverlay, MapContainer, TileLayer, useMapEvents} from "react-leaflet";
+import {ImageOverlay, MapContainer, TileLayer, useMapEvents} from "react-leaflet";
 import {MinMax} from "../../../lib/stats";
 import {BoundaryOverlay} from "./boundary";
 import PointsOverlay from "./pointsOverlay.tsx";
