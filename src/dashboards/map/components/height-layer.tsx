@@ -76,6 +76,7 @@ export const HeightLayer = (props: { simpleMode: any; }) => {
 
   const heightSatellite = () => {
     ClearJsStore()
+
     threeJsHeightMachine.reset()
     threeJsHeightMachine.service.send(LoadingEvent.Load,{
         dealer: client.unwrapOr(null)?.dealer() as string,

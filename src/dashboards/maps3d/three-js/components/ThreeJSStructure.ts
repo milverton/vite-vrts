@@ -200,10 +200,42 @@ export class ThreeJsComponent {
 
     this.scene.add(this.blockMesh)
 
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-ignore
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
     this.sceneObjects.push(this.blockMesh)
+    const ground = new THREE.PlaneGeometry(bbox.width, bbox.height, 2, 2)
+    if (ground.index !== null) {
+      ground.addGroup(0, ground.index.count, 0)
+      ground.addGroup(0, ground.index.count, 1)
+      ground.addGroup(0, ground.index.count, 2)
+    }
+    ground.computeVertexNormals()
+    ground.computeTangents()
+    ground.normalizeNormals()
+    ground.attributes.position.needsUpdate = true
+
+    const groundMesh = new THREE.Mesh(ground, materials[0])
+    groundMesh.position.set(bbox.width / 2, -2, bbox.height / 2)
+    groundMesh.scale.set(1, -1, -1)
+    groundMesh.rotation.x = Math.PI / 2
+    groundMesh.updateMatrixWorld()
+
+    this.scene.add(groundMesh)
+    this.sceneObjects.push(groundMesh)
     return mesh
+  }
+
+  public CreateMeshWithoutMaterial(geometry: THREE.BufferGeometry, materials: THREE.Material[], bbox: BoundingBox) {
+
+      if(this.blockMesh != null){return;}
+      const mesh = new THREE.Mesh(geometry, materials)
+      mesh.position.set(bbox.width / 2, 0, bbox.height / 2)
+      mesh.scale.set(1, -1, -1)
+      mesh.rotation.x = Math.PI / 2
+      mesh.updateMatrixWorld()
+
+      this.scene.add(mesh)
+      this.sceneObjects.push(mesh)
   }
 
   public CreateMeshWithMaterial(geometry: THREE.BufferGeometry, material: THREE.MeshPhysicalMaterial, bbox: BoundingBox) {

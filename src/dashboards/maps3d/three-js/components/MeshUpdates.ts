@@ -56,6 +56,7 @@ export const LoadMesh = (newThree: ThreeJsComponent) => {
       yColumn = bbox.height / threeJsStore.userSettings.Resolution
     }
 
+
     const geometry = new THREE.PlaneGeometry(bbox.width, bbox.height, xColumn, yColumn)
     // Just in case there is no elevation data
     if(interpolatedPoints.length === 0){

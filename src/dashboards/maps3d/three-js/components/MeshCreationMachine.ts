@@ -117,7 +117,7 @@ export let threeJsStore = {
 export const ClearJsStore =() => {
   threeJsStore = {
     basicState: InitialThreeJsStore,
-    userSettings: InitialUserSettings,
+    userSettings: threeJsStore.userSettings,
     sceneSettings: SceneSettings,
     mapSettings: InitialMaterialState,
   }
@@ -246,13 +246,30 @@ threeJsHeightMachine.observer.subscribe({
           const y_column = receivedData.interpolation_results.y_column
           const boundaries = receivedData.boundary_elevation_dto
 
+          const rows = columnData.length / x_column;
+          const cols = columnData.length / y_column;
+
+          // Create initial array with increased dimensions and fill with 0s
+          const twoDArray: number[][] = new Array(rows + 2).fill(0).map(() => new Array(cols + 2).fill(0));
+
+          for (let i = 0; i < columnData.length; i++) {
+            const x = i % x_column;
+            const y = Math.floor(i / x_column);
+
+            // Adjust indices to account for extra rows/cols, placing your data in the 'centre' of the new 2D array
+            twoDArray[y + 1][x + 1] = columnData[i];
+          }
+          const flattenedArray: number[] = twoDArray.flat();
+
           let interpolatedArray = []
           let min = 100000000
-          for (let i = 0; i < columnData.length; i++) {
-            if (columnData[i] === -100) continue
-            if (columnData[i] < min) min = columnData[i]
+
+          for (let i = 0; i < flattenedArray.length; i++) {
+            if (flattenedArray[i] === -100) continue
+            if (flattenedArray[i] === 0) continue
+            if (flattenedArray[i] < min) min = flattenedArray[i]
           }
-          interpolatedArray = columnData.map((value) => {
+          interpolatedArray = flattenedArray.map((value) => {
             if (value === -100) return 0
             if (value < min) return 0
             return value - min
@@ -270,8 +287,8 @@ threeJsHeightMachine.observer.subscribe({
               ...threeJsStore.basicState,
               InterpolatedData: interpolatedArray,
               BaseHeight: maxHeight,
-              XColumn: x_column,
-              YColumn: y_column,
+              XColumn: x_column+2,
+              YColumn: y_column+2,
               BoundaryElevationData: boundaryData
             }
           }

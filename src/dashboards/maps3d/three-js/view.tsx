@@ -82,9 +82,9 @@ export const ThreeJs = ({width, height, className} : {width: number, height: num
       if (newThree.blockMesh) {
         newThree.blockMesh.geometry.dispose();
         // If material is an array, dispose each one
-        if (Array.isArray(newThree.blockMesh.material)) {
-          newThree.blockMesh.material.forEach(material => material.dispose());
-        }
+        // if (Array.isArray(newThree.blockMesh.material)) {
+        //   newThree.blockMesh.material.forEach(material => material.dispose());
+        // }
         newThree.scene.remove(newThree.blockMesh);
         newThree.blockMesh = null; // Dereference the mesh
       }
@@ -222,6 +222,8 @@ export const ThreeJs = ({width, height, className} : {width: number, height: num
         if(threeJsStore.basicState.BoundaryElevationData === null) return;
         newThree.AddBoundaries(boundaryStore.bbox, threeJsStore.basicState.BoundaryElevationData?.lines)
         UpdateBoundariesWithScaledPositions(newThree, squaredHeight, true)
+        UpdateMeshWithScaledPositions(newThree, threeJsStore.userSettings.SquaredHeight)
+        setSquaredHeight(threeJsStore.userSettings.SquaredHeight)
       }
     })
   }, [satelliteTime, heightTime])
