@@ -39,7 +39,6 @@ export const GetWaterStatus = (machine: LoadingMachine): [JSX.Element, boolean] 
 export const GetHeightStatus = (machine: LoadingMachine): [JSX.Element, boolean] => {
 
   const event = machine.value
-  console.log(event)
   switch (event){
     case LoadingEvent.Failure:
       return [MeshStatus.failed, false]

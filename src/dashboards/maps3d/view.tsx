@@ -7,9 +7,10 @@ import {metaClientMachine, metaStore} from "../../lib/stores/meta/store";
 import {Bars3BottomLeftIcon, Bars3Icon} from "@heroicons/react/24/solid";
 import {StringSelect} from "../../components/string-select/view";
 import {soilUIStore} from "../soil/store";
-import {classNames} from "../../lib/common";
+import {classNames, RouteChannel} from "../../lib/common";
 import {NumberInput} from "../../components/number-input/view";
 import {
+  ClearJsStore,
   threeJsHeightMachine,
   threeJsSatelliteMachine,
   threeJsSceneSettingsMachine,
@@ -79,6 +80,16 @@ const Maps3D = () => {
 
   const [mapVariant, __] = useState(soilUIStore.toolbarState.mapVariant)
 
+  useEffect(() => {
+    const sub = RouteChannel.subscribe(() => {
+      // ClearJsStore()
+
+    })
+
+    return () => {
+      sub.unsubscribe()
+    }
+  }, []);
 
   useEffect(() => {
     threeJsSceneSettingsMachine.service.send(LoadingEvent.Update,{
@@ -128,6 +139,7 @@ const Maps3D = () => {
     if (threeJsStore.basicState.Bbox === boundaryStore.bbox) {
       return
     }
+    ClearJsStore()
     threeJsSatelliteMachine.reset()
     threeJsSatelliteMachine.service.send(LoadingEvent.Load, {
         block: block as string,

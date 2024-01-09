@@ -1,4 +1,4 @@
-import {useEffect, useState} from 'react'
+import {useEffect, useRef, useState} from 'react'
 import {classNames} from "../../../lib/common";
 import {MachinesHaveLoaded} from "./transform";
 import {useLoadMachineState} from "../../../core/machine";
@@ -36,10 +36,14 @@ export const ThreeJs = ({width, height, className} : {width: number, height: num
   const [squaredHeight, setSquaredHeight] = useState(5)
   const [showBoundaries, setShowBoundaries] = useState(false)
 
+  const canvasRef = useRef(null);
+  let canvas:HTMLElement | null
+
+
   // SCENE SETTINGS ----
   useEffect(() => {
     try{
-      const canvas:HTMLElement | null = document.getElementById("three-js")
+      canvas = canvasRef.current
       if(canvas === null) {
         console.error(`Could not find canvas element`)
         return () => {}
@@ -54,7 +58,26 @@ export const ThreeJs = ({width, height, className} : {width: number, height: num
     }
 
     return() => {
+      newThree.ClearScene()
+      newThree.controls?.dispose()
       newThree.renderer?.dispose()
+      newThree.renderer?.renderLists?.dispose()
+
+      if (newThree.blockMesh) {
+        newThree.blockMesh.geometry.dispose();
+        // If material is an array, dispose each one
+        if (Array.isArray(newThree.blockMesh.material)) {
+          newThree.blockMesh.material.forEach(material => material.dispose());
+        }
+        newThree.scene.remove(newThree.blockMesh);
+        newThree.blockMesh = null; // Dereference the mesh
+      }
+      newThree.renderer = undefined;
+      newThree.camera = undefined;
+      newThree.controls = undefined;
+      newThree.sceneObjects = [];
+
+
     }
   },[])
 
@@ -66,6 +89,39 @@ export const ThreeJs = ({width, height, className} : {width: number, height: num
       newThree.controls?.update()
     }
     animate()
+
+    return () => {
+      // cancelAnimationFrame(0);
+      // Remove the renderer
+      const rendererDomElement = newThree?.GetDomElement();
+
+      // Check if rendererDomElement is actually a child of canvas
+      if (canvas && rendererDomElement && canvas === rendererDomElement.parentNode) {
+        canvas.removeChild(rendererDomElement);
+      }
+      newThree.ClearScene()
+      newThree.controls?.dispose()
+      newThree.renderer?.dispose()
+      newThree.renderer?.renderLists?.dispose()
+
+      if (newThree.blockMesh) {
+        newThree.blockMesh.geometry.dispose();
+        // If material is an array, dispose each one
+        if (Array.isArray(newThree.blockMesh.material)) {
+          newThree.blockMesh.material.forEach(material => material?.dispose());
+        }
+        newThree.scene.remove(newThree.blockMesh);
+        newThree.blockMesh = null; // Dereference the mesh
+      }
+
+
+      newThree.renderer = undefined;
+      newThree.camera = undefined;
+      newThree.controls = undefined;
+      newThree.sceneObjects = [];
+
+
+    }
   }, [newThree])
 
   useEffect(() => {
@@ -143,24 +199,21 @@ export const ThreeJs = ({width, height, className} : {width: number, height: num
     if(!MachinesHaveLoaded([threeJsSatelliteMachine, threeJsHeightMachine])) return
     if(!newThree.isInitialized) return
 
-    newThree.ClearScene().then(() => {
-      // Once the scene is cleared, load the new mesh
-      LoadMesh(newThree).then(() => {
-        newThree.UpdateCameraPosition(boundaryStore.bbox)
-        if(threeJsStore.userSettings.ShowBoundaries){
-          if(threeJsStore.basicState.BoundaryElevationData === null) return;
-          newThree.AddBoundaries(boundaryStore.bbox, threeJsStore.basicState.BoundaryElevationData?.lines)
-          UpdateBoundariesWithScaledPositions(newThree, squaredHeight, true)
-        }
-      })
-
+    newThree.ClearScene()
+    LoadMesh(newThree).then(() => {
+      newThree.UpdateCameraPosition(boundaryStore.bbox)
+      if(threeJsStore.userSettings.ShowBoundaries){
+        if(threeJsStore.basicState.BoundaryElevationData === null) return;
+        newThree.AddBoundaries(boundaryStore.bbox, threeJsStore.basicState.BoundaryElevationData?.lines)
+        UpdateBoundariesWithScaledPositions(newThree, squaredHeight, true)
+      }
     })
   }, [satelliteTime, heightTime])
 
 
 
   return (
-      <canvas id="three-js" className={classNames(className) + ' justify-start'}></canvas>
+      <canvas ref={canvasRef} className={classNames(className) + ' justify-start'}></canvas>
   )
 }
 

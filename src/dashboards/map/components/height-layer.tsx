@@ -4,6 +4,7 @@ import React, {useEffect, useRef, useState} from "react";
 import {NumberInput} from "../../../components/number-input/view";
 import {LoadButton} from "../../../components/loading-button/view";
 import {
+  ClearJsStore,
   threeJsHeightMachine,
   threeJsSatelliteMachine,
   threeJsStore,
@@ -70,11 +71,11 @@ export const HeightLayer = (props: { simpleMode: any; }) => {
   useEffect(() => {
     const meshLoading = GetHeightStatus(threeJsHeightMachine)
     const satLoading= GetSatelliteStatus(threeJsSatelliteMachine)
-    console.log("FAFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF", meshLoading, satLoading)
     return setMachinesLoading([meshLoading[0], satLoading[0]])
   }, [satTime, dataTime])
 
   const heightSatellite = () => {
+    ClearJsStore()
     threeJsHeightMachine.reset()
     threeJsHeightMachine.service.send(LoadingEvent.Load,{
         dealer: client.unwrapOr(null)?.dealer() as string,

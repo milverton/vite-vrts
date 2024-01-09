@@ -1,5 +1,5 @@
 import {metaClientMachine, metaMachine, metaStore,} from "../../../lib/stores/meta/store";
-import {useEffect, useMemo, useState} from "react";
+import {useEffect, useMemo, useRef, useState} from "react";
 import {DBMetaGroup} from "../../../lib/db";
 import {classNames} from "../../../lib/common";
 // @ts-ignore
@@ -12,6 +12,8 @@ export const Clients = ({className}: { className: string }) => {
   const tm = useLoadMachinesState([metaMachine, metaClientMachine])
   const clientTree = metaStore.metaTree
   const selectedClient = metaStore.client
+
+  const treeRef = useRef(false)
 
   const setSelectedClient = (client: Maybe<DBMetaGroup>, boundary: Meta) => {
     metaClientMachine.reset()
@@ -27,7 +29,31 @@ export const Clients = ({className}: { className: string }) => {
   const [localSelectedField, setLocalSelectedField] = useState('')
   const dealers = Object.keys(clientTree).sort()
 
+  useEffect(() => {
+    if (treeRef.current) return
+    treeRef.current = true
+    setSelectedFirstOffTree()
+  }, [clientTree]);
 
+  const setSelectedFirstOffTree = () => {
+    if(dealers.length === 0) return
+    const dealer:string = Object.keys(clientTree).sort()[0]
+    const client:string = Object.keys(clientTree[dealer]).sort()[0]
+    // @ts-ignore
+    const block:string = Object.keys(clientTree[dealer][client]).sort()[0]
+    // @ts-ignore
+    const field:string = Object.keys(clientTree[dealer][client][block]).sort()[0]
+    // @ts-ignore
+    const season:number = Object.keys(clientTree[dealer][client][block][field]).sort()[0]
+
+    setLocalSelectedDealer(dealer)
+    setLocalSelectedClient(client)
+    setLocalSelectedBlock(block)
+    setLocalSelectedField(field)
+    setLocalSelectedSeason(season.toString())
+    // @ts-ignore
+    setSelectedClient(just(clientTree[dealer][client][block][field][season]), clientTree[dealer][client][block][field][season].getAllFieldsBoundary())
+  }
 
   useMemo(() => {
 
@@ -45,7 +71,6 @@ export const Clients = ({className}: { className: string }) => {
     if (dealer && dealer.menuName.length > 0) {
       setLocalSelectedDealer(dealer.menuName)
     }
-
   }, [dealer])
 
 
@@ -79,7 +104,7 @@ export const Clients = ({className}: { className: string }) => {
 
   return (
     <div className={classNames("p-2 text-gray-500 text-sm", className)}>
-      <StringSelect name={"Dealers"} className="text-sm string-select mb-2" menu={dealersMenu} selected={dealer} setSelected={setDealer} />
+      <StringSelect name={"Dealers"} className="text-sm w-full string-select mb-2" menu={dealersMenu} selected={dealer} setSelected={setDealer} />
 
             {Object.keys(cTree).sort().map(client => {
               // const first = clientTree[localSelectedDealer][client].first()

@@ -76,14 +76,14 @@ const Photos = () => {
 
   return (
     <div className="flex flex-col justify-center items-center m-16 relative">
-      <div className={classNames("flex flex-col justify-center items-center sticky top-16 h-26  w-screen bg-gray-200 z-10", "")}>
+      <div className={classNames("flex flex-col justify-center items-center sticky top-16 h-26 py-2 pb-3 w-screen bg-gray-200 z-10", "")}>
           <h1 className={classNames("text-xl text-center p-2")}>{sampleIds[Math.abs(delayedInc)] || "PHOTOS"}</h1>
           <div className="flex space-x-4">
             <button onClick={() => setInc(delayedInc - 1)}><ChevronDoubleLeftIcon className="h-7 w-7 hover:text-blue-500" /></button>
             <button onClick={() => setInc(delayedInc + 1)}><ChevronDoubleRightIcon className="h-7 w-7 hover:text-blue-500" /></button>
           </div>
       </div>
-      <div className="flex flex-wrap max-w-[1400px] mt-16 z-0">
+      <div className="flex flex-wrap mt-16 z-0">
         {sampleIds.map((sampleId, i) => {
           const photoData = photoUrls[sampleId]
           const hasData = photoData?.url.length > 0
@@ -93,15 +93,19 @@ const Photos = () => {
           return (
             <div
               key={'v'+i}
-              className={classNames("p-4 mt-4 mr-4 cursor-pointer z-0", "border-2 border-gray-100 rounded", delayedInc === i? "border-gray-400": "")}
+              className={classNames("p-2 mt-4 mr-4 cursor-pointer z-0 transition-transform hover:drop-shadow-2xl hover:scale-110", "rounded", delayedInc === i? "border-gray-400": "")}
               onClick={() => setInc(i)}
               onDragOver={(e) => stopPropagation(e)}
+              // onDrop={(e) => import.meta.env.VITE_MODE === 'client' ? () => {} : networkSoilPhotoUploadMachine.service.send(LoadingEvent.Load, {event:e,sampleId,props})}
               onDrop={(e) => networkSoilPhotoUploadMachine.service.send(LoadingEvent.Load, {event:e,sampleId,props})}
+
             >
-              <h4 className="text-xs text-gray-900 font-bold text-center">{sampleId}</h4>
+              <div className="flex items-center justify-center bg-gray-100 rounded-tr-lg rounded-tl-lg py-2">
+                <p className="text-xs font-semibold text-gray-700 text-center">{sampleId}</p>
+              </div>
               <img
                 key={'photo-uid' + photoData?.uid}
-                className={classNames("h-[80px]", hasData? "": "w-52")}
+                className={classNames("h-[100px] decoration-0", hasData? "": "w-52")}
                 src={photoData?.url}
                 height={80}></img>
             </div>

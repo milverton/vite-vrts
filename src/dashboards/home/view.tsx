@@ -14,17 +14,17 @@ import {BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Cell} from 'rechart
 import {round} from "../../lib/stats";
 import {Schema} from "../../core/meta";
 import {MenuProps} from "../../components/string-select/model.tsx";
-import {ChartBarIcon, InformationCircleIcon} from "@heroicons/react/24/outline";
+import {ChartBarIcon, InformationCircleIcon, MapIcon} from "@heroicons/react/24/outline";
 
-const ToggleButton = (props: { setSelected: (arg0: boolean) => void; selected: any; label: string; className:string }) => {
-  return (
-    <button onClick={() => props.setSelected(!props.selected)} className={classNames(
-      "p-2 border-1 text-center rounded text-sm", props.className,
-      !props.selected ? "border-blue-500 bg-white text-blue-500 shadow-inner" : "text-white bg-blue-500 border-blue-500 shadow-md")}>
-      {props.selected ? "Hide " + props.label : "Show " + props.label}
-    </button>
-  )
-}
+// const ToggleButton = (props: { setSelected: (arg0: boolean) => void; selected: any; label: string; className:string }) => {
+//   return (
+//     <button onClick={() => props.setSelected(!props.selected)} className={classNames(
+//       "p-2 border-1 text-center rounded text-sm", props.className,
+//       !props.selected ? "border-blue-500 bg-white text-blue-500 shadow-inner" : "text-white bg-blue-500 border-blue-500 shadow-md")}>
+//       {props.selected ? "Hide " + props.label : "Show " + props.label}
+//     </button>
+//   )
+// }
 
 
 interface HomePaletteProps {
@@ -295,23 +295,25 @@ const HomeMap = () => {
         <div className="flex w-1/6 flex-col space-y-4 min-w-[300px]">
           <h1
             className="text-xl text-secondary text-center">{client.isJust ? client.value.client() : "No Client Selected"}</h1>
-          <div className="flex space-x-2">
-            <button
-              className={classNames('btn-base  flex items-center justify-center w-1/2', tabChoice.menuName === tabs[0].menuName ? "bg-blue-500 text-white" : "bg-white text-gray-500")}
-              onClick={() => setTabChoice(tabs[0])}>
-              <ChartBarIcon className={"mr-2 h-5 inline"}/>
-              Chart
-            </button>
-            <button
-              className={classNames('btn-base flex items-center justify-center w-1/2', tabChoice.menuName === tabs[1].menuName ? "bg-green-500 text-white" : "bg-white text-gray-500")}
-              onClick={() => setTabChoice(tabs[1])}>
-              <InformationCircleIcon className={"mr-2 h-5 inline"}/>
-              Info
-            </button>
-          </div>
+
 
           <div className='bg-gray-100 p-4 rounded border-1'>
             <div className='flex justify-between flex-col space-y-3'>
+              <div className="flex space-x-2">
+                <button
+                  className={classNames('btn-base text-xs flex items-center justify-center w-1/2', tabChoice.menuName === tabs[0].menuName ? "bg-blue-500 text-white" : "bg-white text-gray-500")}
+                  onClick={() => setTabChoice(tabs[0])}>
+                  <ChartBarIcon className={"mr-2 h-5 inline"}/>
+                  Chart
+                </button>
+                <button
+                  className={classNames('btn-base text-xs flex items-center justify-center w-1/2', tabChoice.menuName === tabs[1].menuName ? "bg-green-500 text-white" : "bg-white text-gray-500")}
+                  onClick={() => setTabChoice(tabs[1])}>
+                  <InformationCircleIcon className={"mr-2 h-5 inline"}/>
+                  Info
+                </button>
+              </div>
+
               <StringSelectorControl menu={mapMenu} selected={map} setSelected={(e) => {
                 setMap(e)
               }}/>
@@ -328,10 +330,18 @@ const HomeMap = () => {
               }
 
               <div className="flex justify-between space-x-2 pt-2 w-full">
-                <ToggleButton className={"w-full"} label='Points' selected={soilUIStore.toolbarState.showPoints}
-                              setSelected={setShowPoints}/>
-                <ToggleButton className={"w-full"} label='Boundaries' selected={soilUIStore.toolbarState.showBoundaries}
-                              setSelected={setShowBoundaries}/>
+                <button
+                  className={classNames('btn-base text-xs flex items-center justify-center w-1/2', soilUIStore.toolbarState.showPoints ? "bg-blue-500 text-white" : "bg-white text-gray-500")}
+                  onClick={() => setShowPoints(!soilUIStore.toolbarState.showPoints)}>
+                  <InformationCircleIcon className={"mr-2 h-5 inline"}/>
+                  Show Points
+                </button>
+                <button
+                  className={classNames('btn-base text-xs flex items-center justify-center w-1/2', soilUIStore.toolbarState.showBoundaries ? "bg-blue-500 text-white" : "bg-white text-gray-500")}
+                  onClick={() => setShowBoundaries(!soilUIStore.toolbarState.showBoundaries)}>
+                  <MapIcon className={"mr-2 h-5 inline"}/>
+                  Boundaries
+                </button>
               </div>
             </div>
 
@@ -374,7 +384,7 @@ const HomeMap = () => {
         <MapBox
           key={bm}
           updateNumber={tm}
-          className="w-full h-full z-0"
+          className="w-full h-full z-0 m-0"
           mapBoxSetup={DefaultMapBoxSetup}
           mapSize={MapSize[2]}
           points={soilUIStore.soilDataState.selectedHorizonDataPoints}
@@ -388,6 +398,7 @@ const HomeMap = () => {
           mapZoom={soilUIStore.toolbarState.mapZoom}
           setMapZoom={(z) => update({mapZoom: z})}
           mapFit={soilUIStore.toolbarState.mapFit}
+
         />
         {/*<HomeBarChart bins={barChartProps.bins} palettes={barChartProps.palettes} selectedPalette={barChartProps.selectedPalette}/>*/}
 

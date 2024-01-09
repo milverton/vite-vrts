@@ -33,7 +33,7 @@ const createRows = (results: RegressionResults, rankings: RegressionRanking[], s
     return (
       <tr key={i.toString() + 'b'}
           onClick={() => onSelected(regression.xName, regression.yName, row.type)}
-          className={classNames("text-gray-500  hover:bg-blue-500 hover:text-white", isSelected(regression.xName, regression.yName)? 'bg-blue-300': 'even:bg-gray-200')}>
+          className={classNames("text-gray-500 hover:bg-blue-300 hover:text-white", isSelected(regression.xName, regression.yName)? 'bg-blue-500 text-white': 'even:bg-gray-100')}>
         <td className={classNames("px-4 py-2 max-w-[30ch] truncate ...")}>
           {regression.xName} vs {regression.yName}
         </td>
@@ -83,7 +83,7 @@ const RankingTable = ({title, className}: Props) => {
 
   return (
     <div className={className}>
-      <div className="flex flex-col text-xs">
+      <div className="flex flex-col text-xs bg-gray-50">
         <div className="">
           <div className="inline-block min-w-full align-middle">
             <div className="">

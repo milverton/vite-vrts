@@ -22,7 +22,7 @@ export class ThreeJsComponent {
   public blockMesh:  null | THREE.Mesh | undefined
   public boundaries: THREE.Line[] = []
   public isInitialized = false
-  public sceneObjects = []
+  public sceneObjects:THREE.Object3D[] = []
 
 
   private gridHelper: MyGridHelper = new MyGridHelper() || undefined
@@ -43,6 +43,7 @@ export class ThreeJsComponent {
     // this.light.shadow.camera.far = 10000
     this.scene.add(this.light2)
     this.scene.add(this.light)
+
   }
 
   public UpdateScene(scene: THREE.Scene) {
@@ -109,6 +110,10 @@ export class ThreeJsComponent {
     this.renderer.render(this.scene, this.camera)
   }
 
+  public GetDomElement = (): HTMLCanvasElement | undefined => {
+    return this.renderer?.domElement
+  }
+
   public UpdateSun(angle: number, height: number){
 
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -168,7 +173,6 @@ export class ThreeJsComponent {
   }
   public CreateObjects(objects: THREE.Object3D[]) {
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-expect-error
     this.sceneObjects.push(...objects)
     for (let i = 0; i < objects.length; i++) {
       this.scene.add(objects[i])
@@ -216,14 +220,32 @@ export class ThreeJsComponent {
     this.sceneObjects.push(this.blockMesh)
   }
 
-  public ClearScene(): Promise<boolean> {
-    return new Promise((resolve) => {
-      for (let i = 0; i < this.sceneObjects.length; i++) {
-        this.scene.remove(this.sceneObjects[i])
+  public ClearScene = () : boolean => {
+
+    for(let i = 0; i < this.scene.children.length; i++){
+      const child = this.scene.children[i]
+      if(child instanceof THREE.Mesh){
+        child.geometry.dispose()
       }
-      this.sceneObjects = []
-      resolve(true)
-    })
+      else if(child instanceof THREE.Line){
+        child.geometry.dispose()
+      }
+      else {
+        child.children.forEach((obj) => {
+          if (obj instanceof THREE.Mesh) {
+            obj.geometry.dispose()
+          } else if (obj instanceof THREE.Line) {
+            obj.geometry.dispose()
+          }
+        })
+      }
+    }
+
+    for (let i = 0; i < this.sceneObjects.length; i++) {
+      this.scene.remove(this.sceneObjects[i])
+    }
+    this.sceneObjects = []
+    return true
   }
 
   public AddMeshOutline = (mesh: THREE.Mesh, bbox: BoundingBox) => {
@@ -263,7 +285,7 @@ export class ThreeJsComponent {
     if (this.boundaries.length === 0) return
     this.scene.remove(...this.boundaries)
     this.sceneObjects = this.sceneObjects.filter((obj) => {
-      return !this.boundaries.includes(obj)
+      return !this.boundaries.includes(obj as THREE.Line)
     })
     this.boundaries = []
   }

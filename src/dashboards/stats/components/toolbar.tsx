@@ -72,8 +72,8 @@ const RSquaredThresholdControl = () => {
 const StatsToolbar = () => {
   return (
     <div className="flex flex-col relative text-xs justify-start sticky top-16 z-40">
-      <div className="flex flex-row w-full bg-white">
-        <div className="bg-blue-100 flex flex-row p-2 border-r-4 border-gray-100 ">
+      <div className="flex flex-row w-full py-1 space-x-2 bg-gray-100">
+        <div className="flex space-x-2 flex-row p-2 px-4 border-r-[1px] border-gray-300">
           <LongListToggle/>
           <SoilHorizonSelector/>
           <XHeaderSelector/>
@@ -82,7 +82,7 @@ const StatsToolbar = () => {
           <RegressionDegreeControl/>
         </div>
 
-        <div className="bg-gray-100 flex flex-row p-2 border-r-4 border-gray-100 ">
+        <div className="flex flex-row p-2 border-r-[1px] border-gray-300 px-4">
           <RSquaredThresholdControl/>
           {/*<OutlierThreshold/>*/}
           <ShowOutliersToggle/>

@@ -1,5 +1,5 @@
 import {useEffect} from "react";
-import {ImageOverlay, MapContainer, TileLayer, useMapEvents} from "react-leaflet";
+import {AttributionControl, ImageOverlay, MapContainer, TileLayer, useMapEvents} from "react-leaflet";
 import {MinMax} from "../../../lib/stats";
 import {BoundaryOverlay} from "./boundary";
 import PointsOverlay from "./pointsOverlay.tsx";
@@ -74,7 +74,7 @@ const MapOverlay = ({overlay, opacity, bbox,mapVariant}: {overlay:Maybe<MapOverl
   let url = data.url(mapVariant)
   return(
     // @ts-ignore
-    <ImageOverlay key={url} opacity={opacity} url={url} bounds={latlngBbox as LatLngBoundsExpression}/>
+    <ImageOverlay attribution={true} key={url} opacity={opacity} url={url} bounds={latlngBbox as LatLngBoundsExpression}/>
   )
 }
 
@@ -123,12 +123,16 @@ const MapBox = ({updateNumber,className,points,mapBoxSetup, showZoomControl,scro
                     zoomControl={showZoomControl}
                     scrollWheelZoom={scrollToZoom}
                     style={{width: '100%', height: "100%"}}>
+        {/*<AttributionControl position="bottomleft" prefix={"Leaflet"}/>*/}
+
         <MapEvents mapFit={mapFit} updateNumber={updateNumber} setZoom={setMapZoom} boundary={selectedBoundary}/>
         <TileLayer
-          // @ts-ignore
-          attribution={mapBoxSetup.attribution}
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           url={mapBoxSetup.url(import.meta.env.VITE_MB_KEY)}
-          keepBuffer={100} />
+          keepBuffer={100}
+        />
+
+
         <BoundaryOverlay key={keyBase + 'bo'} show={showBoundaries} boundary={selectedBoundary}/>
         <MapOverlay overlay={urlData} mapVariant={selectedMapVariant} bbox={bbox} selectedBoundary={selectedBoundary} opacity={mapOpacity} />
         <PointsOverlay show={showPoints}/>

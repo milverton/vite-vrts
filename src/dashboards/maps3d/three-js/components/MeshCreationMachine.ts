@@ -114,6 +114,15 @@ export let threeJsStore = {
   sceneSettings: SceneSettings,
   mapSettings: InitialMaterialState,
 }
+export const ClearJsStore =() => {
+  threeJsStore = {
+    basicState: InitialThreeJsStore,
+    userSettings: InitialUserSettings,
+    sceneSettings: SceneSettings,
+    mapSettings: InitialMaterialState,
+  }
+}
+
 
 export const threeJsUserSettingsMachine = new LoadingMachine('ThreeJs User Settings Machine')
 threeJsUserSettingsMachine.observer.subscribe({

@@ -1,7 +1,5 @@
 import {BoundingBox} from "../../core/bounding-box";
-import {GridCell} from "./three-js/model.ts";
 import * as THREE from "three";
-import {unScalePoint} from "../../lib/map";
 
 export const getStaticImageFromBbox = (bbox: BoundingBox): Promise<THREE.Texture> =>  {
   const host = 'https://api.mapbox.com/styles/v1'
@@ -10,9 +8,9 @@ export const getStaticImageFromBbox = (bbox: BoundingBox): Promise<THREE.Texture
   const style_id = 'satellite-v9'
   //const style_id = 'outdoors-v12'
 
-  let [newWidth, newHeight] = fitDimensions(bbox.width, bbox.height, 1, 1280, 1, 1280)
+  const [newWidth, newHeight] = fitDimensions(bbox.width, bbox.height, 1, 1280, 1, 1280)
   const url = `${host}/${username}/${style_id}/static/[${bbox.min_x},${bbox.min_y},${bbox.max_x},${bbox.max_y}]/${newWidth}x${newHeight}@2x?access_token=${api}&attribution=true&logo=true`
-  let textureLoader = new THREE.TextureLoader()
+  const textureLoader = new THREE.TextureLoader()
 
   return new Promise<THREE.Texture>((resolve, reject) => {
     fetch(url).then((response) => {
@@ -36,20 +34,20 @@ export const getStaticImage4X = (bbox: BoundingBox): Promise<THREE.CanvasTexture
   const style = `@2x?access_token=${api}&attribution=true&logo=true`
 
 
-  let smallerBoxWidth = bbox.width / 2;
-  let smallerBoxHeight = bbox.height / 2;
-  let [newWidth, newHeight] = fitDimensions(smallerBoxWidth, smallerBoxHeight, 1, 1280, 1, 1280)
-  let boundingBoxes = splitBoundingBoxIntoFour(bbox) as GeoBoundingBox[]
+  const smallerBoxWidth = bbox.width / 2;
+  const smallerBoxHeight = bbox.height / 2;
+  const [newWidth, newHeight] = fitDimensions(smallerBoxWidth, smallerBoxHeight, 1, 1280, 1, 1280)
+  const boundingBoxes = splitBoundingBoxIntoFour(bbox) as GeoBoundingBox[]
 
   const topLeftUrl = `${host}/${username}/${style_id}/static/[${boundingBoxes[0].min_x},${boundingBoxes[0].min_y},${boundingBoxes[0].max_x},${boundingBoxes[0].max_y}]/${newWidth}x${newHeight}${style}`
   const topRightUrl = `${host}/${username}/${style_id}/static/[${boundingBoxes[1].min_x},${boundingBoxes[1].min_y},${boundingBoxes[1].max_x},${boundingBoxes[1].max_y}]/${newWidth}x${newHeight}${style}`
   const bottomLeftUrl = `${host}/${username}/${style_id}/static/[${boundingBoxes[2].min_x},${boundingBoxes[2].min_y},${boundingBoxes[2].max_x},${boundingBoxes[2].max_y}]/${newWidth}x${newHeight}${style}`
   const bottomRightUrl = `${host}/${username}/${style_id}/static/[${boundingBoxes[3].min_x},${boundingBoxes[3].min_y},${boundingBoxes[3].max_x},${boundingBoxes[3].max_y}]/${newWidth}x${newHeight}${style}`
 
-  let promises = [loadUrl(topLeftUrl), loadUrl(topRightUrl), loadUrl(bottomLeftUrl), loadUrl(bottomRightUrl)]
+  const promises = [loadUrl(topLeftUrl), loadUrl(topRightUrl), loadUrl(bottomLeftUrl), loadUrl(bottomRightUrl)]
   return new Promise<THREE.CanvasTexture>((resolve, reject) => {
     Promise.all(promises).then((values) => {
-      let urls = {topLeft: values[0], topRight: values[1], bottomLeft: values[2], bottomRight: values[3]}
+      const urls = {topLeft: values[0], topRight: values[1], bottomLeft: values[2], bottomRight: values[3]}
 
       const textures = {
         topLeft: loadTexture(urls.topLeft),
@@ -95,11 +93,11 @@ export const getStaticImages3By3FromBbox = (bbox: BoundingBox): Promise<THREE.Ca
   const username = 'mapbox'
   const style_id = 'satellite-v9'
 
-  let boxWidth = bbox.width / 3;
-  let boxHeight = bbox.height / 3;
+  const boxWidth = bbox.width / 3;
+  const boxHeight = bbox.height / 3;
 
-  let [newWidth, newHeight] = fitDimensions(boxWidth, boxHeight, 1, 1280, 1, 1280);
-  let boundingBoxes = splitBoundingBoxIntoNine(bbox);
+  const [newWidth, newHeight] = fitDimensions(boxWidth, boxHeight, 1, 1280, 1, 1280);
+  const boundingBoxes = splitBoundingBoxIntoNine(bbox);
   const promises = boundingBoxes.map(box => {
     const url = `${host}/${username}/${style_id}/static/[${box.min_x},${box.min_y},${box.max_x},${box.max_y}]/${newWidth}x${newHeight}@2x?access_token=${api}`;
     return loadUrl(url);
@@ -136,7 +134,7 @@ export const getStaticImages3By3FromBbox = (bbox: BoundingBox): Promise<THREE.Ca
 function splitBoundingBoxIntoNine(bbox: BoundingBox): BoundingBox[] {
   const boxWidth = (bbox.max_x - bbox.min_x) / 3;
   const boxHeight = (bbox.max_y - bbox.min_y) / 3;
-  const boxes: any = [];
+  const boxes: BoundingBox[] = [];
 
   for (let j = 0; j < 3; j++) { // Outer loop for rows (latitude)
     for (let i = 0; i < 3; i++) { // Inner loop for columns (longitude)
@@ -146,8 +144,8 @@ function splitBoundingBoxIntoNine(bbox: BoundingBox): BoundingBox[] {
         max_y: bbox.max_y - (j * boxHeight),  // Start from max_y and decrease
         min_y: bbox.max_y - ((j + 1) * boxHeight), // to get the next min_y
         width: bbox.width / 3,
-        height: bbox.height / 3,
-      });
+        height: bbox.height / 3
+      } as BoundingBox);
     }
   }
 
@@ -155,8 +153,7 @@ function splitBoundingBoxIntoNine(bbox: BoundingBox): BoundingBox[] {
 }
 
 
-// @ts-ignore
-function loadTexture(url):Promise<any> {
+function loadTexture(url:string):Promise<THREE.Texture> {
   const loader = new THREE.TextureLoader();
   return new Promise((resolve, reject) => {
     loader.load(
@@ -168,8 +165,7 @@ function loadTexture(url):Promise<any> {
   });
 }
 
-// @ts-ignore
-const loadUrl = (url): Promise<any> => {
+const loadUrl = (url:string): Promise<string> => {
   return new Promise((resolve, reject) => {
     fetch(url).then((response) => {
       if(!response.ok) { reject(response.statusText) }
@@ -222,11 +218,11 @@ function splitBoundingBoxIntoFour(bbox: BoundingBox): GeoBoundingBox[] {
     },
   ];
 }
-export const getStaticBingImageFromBbox = (bbox: BoundingBox): Promise<String> =>  {
+export const getStaticBingImageFromBbox = (bbox: BoundingBox): Promise<string> =>  {
   const host = 'https://dev.virtualearth.net/REST/v1/Imagery/Map/Aerial/'
   const api = import.meta.env.VITE_BI_KEY;
 
-  let [newWidth, newHeight] = fitDimensions(bbox.width, bbox.height, 1, 2048, 1, 2048)
+  const [newWidth, newHeight] = fitDimensions(bbox.width, bbox.height, 1, 2048, 1, 2048)
   const centerLat = (bbox.max_y + bbox.min_y) / 2
   const centerLon = (bbox.max_x + bbox.min_x) / 2
 
@@ -269,7 +265,7 @@ export const getStaticSatelliteElevation = (bbox: BoundingBox): Promise<ISatelli
      eastLongitude: bbox.max_x
    }
 
-   let [cols, rows] = fitDimensions(bbox.width, bbox.height, 1, 32, 1, 32)
+   const [cols, rows] = fitDimensions(bbox.width, bbox.height, 1, 32, 1, 32)
    const apiUrl = `https://dev.virtualearth.net/REST/v1/Elevation/Bounds?bounds=${boundingBox.southLatitude},${boundingBox.westLongitude},${boundingBox.northLatitude},${boundingBox.eastLongitude}&rows=${rows}&cols=${cols}&key=${apiKey}`;
 
 
@@ -279,7 +275,7 @@ export const getStaticSatelliteElevation = (bbox: BoundingBox): Promise<ISatelli
       .then(data => {
         if (data.statusCode === 200) {
           const elevations = data.resourceSets[0].resources[0].elevations;
-          let flippedY = flipY(elevations, rows, cols);
+          const flippedY = flipY(elevations, rows, cols);
           resolve({
             elevation: flippedY as [],
             rows: rows,
@@ -295,123 +291,129 @@ export const getStaticSatelliteElevation = (bbox: BoundingBox): Promise<ISatelli
   })
 }
 
-export const getStaticElevationForEmptyPoints = (bbox: BoundingBox, elevation:number[], min:number, grid: GridCell[]): Promise<[]> =>  {
-  const apiKey = import.meta.env.VITE_BI_KEY
-  let segments: any[] = []
-  let currentIdx = 0;
-  let currentSegment = []
-  let bb = [
-    bbox.min_x,
-    bbox.min_y,
-    bbox.max_x,
-    bbox.max_y
-  ]
-  // Loop through and create segments of 1024 points
-  for(let i = 0; i < elevation.length; i++) {
-    if(currentIdx >= 500 || i === grid.length - 1){
-      segments.push(currentSegment)
-      currentSegment = []
-      currentIdx = 0;
-    }
-    // Scale points to lat,lon based on boundingBox
-    if(elevation[i] !== 0) continue;
-    let [x,y] = unScalePoint(bb, grid[i].position.x, grid[i].position.z, bbox.dist_x, bbox.dist_y, bbox.width, bbox.height)
-    let point = new THREE.Vector3(y, elevation[i], x)
-    currentSegment.push([i,point])
-    currentIdx++
-  }
+// export const getStaticElevationForEmptyPoints = (bbox: BoundingBox, elevation:number[], min:number, grid: GridCell[]): Promise<[]> =>  {
+//   const apiKey = import.meta.env.VITE_BI_KEY
+//   const segments: any[] = []
+//   let currentIdx = 0;
+//   let currentSegment = []
+//   const bb = [
+//     bbox.min_x,
+//     bbox.min_y,
+//     bbox.max_x,
+//     bbox.max_y
+//   ]
+//   // Loop through and create segments of 1024 points
+//   for(const i = 0; i < elevation.length; i++) {
+//     if(currentIdx >= 500 || i === grid.length - 1){
+//       segments.push(currentSegment)
+//       currentSegment = []
+//       currentIdx = 0;
+//     }
+//     // Scale points to lat,lon based on boundingBox
+//     if(elevation[i] !== 0) continue;
+//     const [x,y] = unScalePoint(bb, grid[i].position.x, grid[i].position.z, bbox.dist_x, bbox.dist_y, bbox.width, bbox.height)
+//     const point = new THREE.Vector3(y, elevation[i], x)
+//     currentSegment.push([i,point])
+//     currentIdx++
+//   }
+//
+//   return new Promise<[]>(async (resolve, _reject) => {
+//     const promises = []
+//     for(const i = 0; i < segments.length; i++) {
+//       const segment = segments[i]
+//       promises.push(FetchElevationForPoints(segment, apiKey))
+//     }
+//     Promise.all(promises).then((results) => {
+//       console.log("results", results)
+//       for(const i = 0; i < results.length; i++){
+//         for(const j = 0; j < results[i].length; j++){
+//           const point = results[i][j]
+//           elevation[point[0]] = point[1] - min
+//         }
+//       }
+//       resolve(elevation as [])
+//     })
+//
+//   })
+// }
 
-  return new Promise<[]>(async (resolve, _reject) => {
-    let promises = []
-    for(let i = 0; i < segments.length; i++) {
-      let segment = segments[i]
-      promises.push(FetchElevationForPoints(segment, apiKey))
-    }
-    Promise.all(promises).then((results) => {
-      console.log("results", results)
-      for(let i = 0; i < results.length; i++){
-        for(let j = 0; j < results[i].length; j++){
-          let point = results[i][j]
-          elevation[point[0]] = point[1] - min
-        }
-      }
-      resolve(elevation as [])
-    })
+// interface IPoint {
+//   x: number;
+//   y: number;
+//   z: number;
+// }
 
-  })
-}
-
-const FetchElevationForPoints = (segment: any[], apiKey: string): Promise<[]> => {
-  return new Promise<[]>((resolve, reject) => {
-    let elevation: any[][] = []
-    let latitude = 0
-    let longitude = 0
-    let result = []
-    if (segment.length === 0) reject("No points requiring elevation")
-    let elevationPointsToGet = segment.map((p) => [p[1].x, p[1].z])
-    for(let i = 0; i < elevationPointsToGet.length; i++){
-      let point = elevationPointsToGet[i]
-      let lat = Math.round(point[1] * 100000)
-      let lon =  Math.round(point[0] * 100000)
-
-      let dy = lat - latitude
-      let dx = lon - longitude
-      latitude = lat
-      longitude = lon
-
-      dy = (dy << 1) ^ (dy >> 31)
-      dx = (dx << 1) ^ (dx >> 31)
-
-      let index = ((dy + dx) * (dy + dx + 1) / 2) + dy
-
-      while (index > 0) {
-        let rem = index & 31;
-        index = (index - rem) / 32;
-
-        if (index > 0) rem += 32;
-
-        result.push("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_-"[rem]);
-      }
-    }
-    result.join("")
-
-    let url = `http://dev.virtualearth.net/REST/v1/Elevation/List?points=${result}&key=${apiKey}`
-
-    console.log("text", result)
-    fetch(url).then((response) => {
-      if (response.ok === false) {
-        reject(response.statusText)
-      }
-      return response.json()
-    }).then((data) => {
-      if (data.statusCode === 200) {
-        let elevations = data.resourceSets[0].resources[0].elevations
-
-        segment.forEach((p, i) => {
-          elevation.push([p[0], elevations[i]])
-        })
-        // console.log("elevation", elevation)
-        resolve(elevation as [])
-      }
-    }).catch((error) => {
-      reject(error)
-    }).catch((error) => {
-      console.log("error", error)
-      reject(error)
-    })
-  })
-}
+// const FetchElevationForPoints = (segment: IPoint[], apiKey: string): Promise<[]> => {
+//   return new Promise<[]>((resolve, reject) => {
+//     const elevation: number[][] = []
+//     let latitude = 0
+//     let longitude = 0
+//     const result = []
+//     if (segment.length === 0) reject("No points requiring elevation")
+//     const elevationPointsToGet = segment.map((p) => [p.x, p.z])
+//     for(let i = 0; i < elevationPointsToGet.length; i++){
+//       const point = elevationPointsToGet[i]
+//       const lat = Math.round(point[1] * 100000)
+//       const lon =  Math.round(point[0] * 100000)
+//
+//       let dy = lat - latitude
+//       let dx = lon - longitude
+//       latitude = lat
+//       longitude = lon
+//
+//       dy = (dy << 1) ^ (dy >> 31)
+//       dx = (dx << 1) ^ (dx >> 31)
+//
+//       let index = ((dy + dx) * (dy + dx + 1) / 2) + dy
+//
+//       while (index > 0) {
+//         let rem = index & 31;
+//         index = (index - rem) / 32;
+//
+//         if (index > 0) rem += 32;
+//
+//         result.push("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_-"[rem]);
+//       }
+//     }
+//     result.join("")
+//
+//     const url = `http://dev.virtualearth.net/REST/v1/Elevation/List?points=${result}&key=${apiKey}`
+//
+//     console.log("text", result)
+//     fetch(url).then((response) => {
+//       if (response.ok === false) {
+//         reject(response.statusText)
+//       }
+//       return response.json()
+//     }).then((data) => {
+//       if (data.statusCode === 200) {
+//         const elevations = data.resourceSets[0].resources[0].elevations
+//
+//         segment.forEach((p, i) => {
+//           elevation.push([p.x, elevations[i]])
+//         })
+//         // console.log("elevation", elevation)
+//         resolve(elevation as [])
+//       }
+//     }).catch((error) => {
+//       reject(error)
+//     }).catch((error) => {
+//       console.log("error", error)
+//       reject(error)
+//     })
+//   })
+// }
 
 function flipY(data: number[], rows: number, cols: number): number[] {
-  let flipped: number[] = new Array(data.length);
+  const flipped: number[] = new Array(data.length);
 
   for (let r = 0; r < rows; r++) {
     for (let c = 0; c < cols; c++) {
       // Calculate the index in the original flat array
-      let originalIndex = r * cols + c;
+      const originalIndex = r * cols + c;
 
       // Calculate the index in the flipped array
-      let flippedIndex = (rows - 1 - r) * cols + c;
+      const flippedIndex = (rows - 1 - r) * cols + c;
 
       flipped[flippedIndex] = data[originalIndex];
     }

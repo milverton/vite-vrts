@@ -53,7 +53,7 @@ const RegressionTable = ({
         {predictions.map((row, i) => (
           <tr key={i.toString() + 'z'}
               onClick={() => onClick(i)}
-              className={classNames("text-center hover:bg-blue-500 hover:text-white", row.outlier ? 'text-red-500' : 'text-gray-500', i === selected ? 'bg-blue-300' : 'even:bg-gray-200')}>
+              className={classNames("text-center hover:bg-blue-300 hover:text-white", row.outlier ? 'text-red-500' : 'text-gray-500', i === selected ? 'bg-blue-500 text-white' : 'even:bg-gray-100')}>
             <td key={i.toString() + 'a'} className="px-4 py-2 whitespace-nowrap ">{row.id}</td>
             <td key={i.toString() + 'c'} className="px-4 py-2 whitespace-nowrap ">{round(fixNumber(row.x), 3)}</td>
             <td key={i.toString() + 'd'}
@@ -70,7 +70,7 @@ const RegressionTable = ({
 
   return (
     <div className={className}>
-      <div className="flex flex-col">
+      <div className="flex flex-col bg-gray-50">
         <div className="">
           <div className="inline-block min-w-full align-middle">
             <div className="overflow-hidden">

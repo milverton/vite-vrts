@@ -12,7 +12,7 @@ import StatsToolbar from "./components/toolbar";
 import {GoogleChart} from "./components/chart";
 import RegressionTable from "./components/regression-table";
 import RankingTable from "./components/ranking-table";
-import {RegressionResult, RegressionResultEntry, StatsRegressionTypesMenu} from "./model";
+import {StatsRegressionTypesMenu} from "./model";
 import {mean, round} from "../../lib/stats";
 
 import {SoilHorizonsMenu} from "../soil/model";
@@ -40,29 +40,29 @@ import {CsvType} from "../../core/model";
 // }
 
 // const toNumber = (x:number) => isNaN(x)? 0: x
-const RegressionSummary = ({regression, title}: { regression: RegressionResult, title: string }) => {
-  return (
-    <div className="flex flex-col items-center">
-      <h2 className="text-xl text-center">{title} R<sup>2</sup></h2>
-      <h3 className="text-base">{round(regression.r2, 2)}</h3>
-    </div>
-  )
-}
+// const RegressionSummary = ({regression, title}: { regression: RegressionResult, title: string }) => {
+//   return (
+//     <div className="flex flex-col items-center">
+//       <h2 className="text-xl text-center">{title} R<sup>2</sup></h2>
+//       <h3 className="text-base">{round(regression.r2, 2)}</h3>
+//     </div>
+//   )
+// }
 
-const RegressionSummaries = ({result}: { result: RegressionResultEntry | null }) => {
-
-  if (!result?.results) {
-    return <></>
-  }
-  const regressions = result.results
-  return (
-    <div className="flex flex-row items-center justify-evenly p-4 border-b-2 border-gray-100 mt-16">
-      <RegressionSummary regression={regressions.linear} title="Linear"/>
-      <RegressionSummary regression={regressions.polynomial} title="Polynomial"/>
-      <RegressionSummary regression={regressions.exponential} title="Exponential"/>
-    </div>
-  )
-}
+// const RegressionSummaries = ({result}: { result: RegressionResultEntry | null }) => {
+//
+//   if (!result?.results) {
+//     return <></>
+//   }
+//   const regressions = result.results
+//   return (
+//     <div className="flex flex-row items-center justify-evenly p-4 border-b-2 border-gray-100 mt-16">
+//       <RegressionSummary regression={regressions.linear} title="Linear"/>
+//       <RegressionSummary regression={regressions.polynomial} title="Polynomial"/>
+//       <RegressionSummary regression={regressions.exponential} title="Exponential"/>
+//     </div>
+//   )
+// }
 // const createHeaders = (headers: string[]) => {
 //   return headers.map((h, i) => {
 //     return (
@@ -748,7 +748,7 @@ const computeLabels = ({coordinates, emCoordinates, grCoordinates}: {coordinates
       const d = cheapRuler.distance(c as Point, grCoordinates[i] as Point)
       return d
     })
-    let _lbls = [...fusionStore.fusionSampleIds]
+    const _lbls = [...fusionStore.fusionSampleIds]
     return _lbls.map((s, i) => `${s}  EM ${round(emDistances[i], 0)}m  GR ${round(grDistances[i], 0)}m`)
 }
 const StatsView = () => {
@@ -756,7 +756,7 @@ const StatsView = () => {
 
   // console.log("STATS VIEW", statsStore)
 
-  const [_,setSelectedRow] = useLoadMachineStateWithUpdate(statsUISharedStateMachine)
+  const [,setSelectedRow] = useLoadMachineStateWithUpdate(statsUISharedStateMachine)
   const statsResult = statsStore.regressionState.selectedResult
   const statsPredictions = statsStore.regressionState.predictions
 
@@ -776,20 +776,19 @@ const StatsView = () => {
   const grCoordinates = getPointsForLonLat(fusionStore.fusionData.csv, 'gr-lat', 'gr-lon').unwrapOr([])
   const labels = computeLabels({coordinates, emCoordinates, grCoordinates})
 
-  const [__, update] = useLoadMachineStateWithUpdate(statsRegressionOutliersMachine)
+  const [, update] = useLoadMachineStateWithUpdate(statsRegressionOutliersMachine)
 
   const reportItem = regressionResultEntryToReportItem(statsResult, statsStore.uiXYState.selectedHorizon, statsRegressionType)
 
   return (
     <div>
       <StatsToolbar/>
-      <RegressionSummaries result={statsResult}/>
-      <div className="flex flex-row w-full">
-
+      {/*<RegressionSummaries result={statsResult}/>*/}
+      <div className="flex flex-row w-full mt-16 mb-8">
         <div className="flex flex-col">
           <RankingTable
             title={'Ranked Results'}
-            className={'min-h-[20em] max-h-[300px] mx-2 min-w-3/12 text-xs overflow-y-auto'}
+            className={'min-h-[20em] max-h-[300px] mt-2 mx-2 min-w-3/12 text-xs overflow-y-auto'}
           />
           <RegressionTable
             title={statsRegressionType}
@@ -797,31 +796,37 @@ const StatsView = () => {
             xName={statsResult?.xName}
             yName={statsResult?.yName}
             selected={statsStore.uiSharedState.statsUISelectedRowAtom}
-            className={'min-h-[20em] max-h-[500px] mt-8 mx-2 min-w-3/12 text-xs overflow-y-auto'}
+            className={'min-h-[20em] max-h-[500px] mt-6 mx-2 min-w-3/12 text-xs overflow-y-auto'}
             onClick={(row) => setSelectedRow(row)}
             onOutlierClicked={(c) => update(c)}
           />
         </div>
-        <GoogleChart
-          id={'stats-chart'}
-          className='w-9/12'
-          xName={reportItem.x}
-          yName={reportItem.y}
-          reportItem={reportItem}
-          horizon={selectedHorizon}
-          regressionType={statsRegressionType}
-          degree={degree}
-          showLabels={showLabels}
-          showOutliers={showOutliers}
-          showThresholds={showThresholds}
-          selectedRow={statsStore.uiSharedState.statsUISelectedRowAtom}
-          setSelectedRow={setSelectedRow}
-          height={800}
-          onMount={(_) => {}}
-        />
+        <div className="w-full h-full">
+          <GoogleChart
+            id={'stats-chart'}
+            className='w-9/12'
+            xName={reportItem.x}
+            yName={reportItem.y}
+            reportItem={reportItem}
+            horizon={selectedHorizon}
+            regressionType={statsRegressionType}
+            degree={degree}
+            showLabels={showLabels}
+            showOutliers={showOutliers}
+            showThresholds={showThresholds}
+            selectedRow={statsStore.uiSharedState.statsUISelectedRowAtom}
+            setSelectedRow={setSelectedRow}
+            height={800}
+            onMount={() => {}}
+          />
+        </div>
+
+      </div>
+      <div className="w-full h-full border-t-[1px] border-gray-300 bg-gray-50">
+        <FusionMap coordinates={coordinates} bbox={bbox} emCoordinates={emCoordinates} grCoordinates={grCoordinates} labels={labels}/>
+
       </div>
       {/*<ReportSelectionTable className={'mx-2 mt-8 p-4 border-t-solid border-t-2 border-gray-200'} title={'Regression Report Setup'}/>*/}
-      <FusionMap coordinates={coordinates} bbox={bbox} emCoordinates={emCoordinates} grCoordinates={grCoordinates} labels={labels}/>
       {/*<FusionGenerator />*/}
     </div>
   )

@@ -13,7 +13,7 @@ import {boundaryMachine} from "../../lib/stores/boundary/machines.ts";
 const Soil = () => {
   const bm = useLoadMachinesState([boundaryMachine])
   useLoadMachinesState([soilUIDataMachine])
-  const [_, update] = useLoadMachineStateWithUpdate(soilUIToolbarMachine)
+  const [stm, update] = useLoadMachineStateWithUpdate(soilUIToolbarMachine)
   const tm = useLoadMachinesState([soilMachine,metaClientMachine, soilMachine, metaMachine])
 
   useEffect(() => {
@@ -29,16 +29,16 @@ const Soil = () => {
     <div className="h-full w-full z-0">
       <SoilToolbar id={'m' + bm + Object.keys(soilStore.maps.soilMapUrls).join(',')}/>
       <div className={"flex items-end justify-center h-full w-full"}>
-        <div className="h-full w-full ">
+        <div className="h-full w-full">
           <MapBox
-            key={bm}
+            key={bm + stm}
             updateNumber={tm}
-            className="z-0 h-full w-full"
+            className="z-0 h-full w-full mt-16"
             mapBoxSetup={DefaultMapBoxSetup}
             mapSize={MapSize[2]}
             points={soilUIStore.soilDataState.selectedHorizonDataPoints}
             showZoomControl={true}
-            scrollToZoom={false}
+            scrollToZoom={soilUIStore.toolbarState.scrollZoom}
             showPoints={soilUIStore.toolbarState.showPoints}
             showBoundaries={soilUIStore.toolbarState.showBoundaries}
             showAttributes={true}
@@ -48,6 +48,7 @@ const Soil = () => {
             setMapZoom={(z) => update({mapZoom: z})}
             mapFit={soilUIStore.toolbarState.mapFit}
           />
+
         </div>
       </div>
 
