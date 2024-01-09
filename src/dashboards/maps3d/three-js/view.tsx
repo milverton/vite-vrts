@@ -40,6 +40,22 @@ export const ThreeJs = ({width, height, className} : {width: number, height: num
   let canvas:HTMLElement | null
 
 
+  useEffect(() => {
+    window.addEventListener('resize', onWindowResize, false);
+
+    return () => {
+      window.removeEventListener('resize', onWindowResize, false);
+    }
+  }, []);
+
+  function onWindowResize() {
+    if (newThree.camera === undefined) return
+    newThree.camera.aspect = window.innerWidth / window.innerHeight;
+    newThree.camera.updateProjectionMatrix();
+    if (!newThree.renderer) return;
+    newThree.renderer?.setSize(window.innerWidth, window.innerHeight);
+  }
+
   // SCENE SETTINGS ----
   useEffect(() => {
     try{

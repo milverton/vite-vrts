@@ -13,7 +13,6 @@ export const Clients = ({className}: { className: string }) => {
   const clientTree = metaStore.metaTree
   const selectedClient = metaStore.client
 
-  const treeRef = useRef(false)
 
   const setSelectedClient = (client: Maybe<DBMetaGroup>, boundary: Meta) => {
     metaClientMachine.reset()
@@ -29,11 +28,8 @@ export const Clients = ({className}: { className: string }) => {
   const [localSelectedField, setLocalSelectedField] = useState('')
   const dealers = Object.keys(clientTree).sort()
 
-  useEffect(() => {
-    if (treeRef.current) return
-    treeRef.current = true
-    setSelectedFirstOffTree()
-  }, [clientTree]);
+  const [initialized, setInitialized] = useState(false)
+
 
   const setSelectedFirstOffTree = () => {
     if(dealers.length === 0) return
@@ -54,6 +50,14 @@ export const Clients = ({className}: { className: string }) => {
     // @ts-ignore
     setSelectedClient(just(clientTree[dealer][client][block][field][season]), clientTree[dealer][client][block][field][season].getAllFieldsBoundary())
   }
+
+  useEffect(() => {
+    if (!initialized && dealers.length > 0) {
+      setSelectedFirstOffTree()
+      setInitialized(true)
+      return;
+    }
+  }, [clientTree])
 
   useMemo(() => {
 
